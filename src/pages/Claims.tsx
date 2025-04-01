@@ -1,12 +1,16 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, FileText, Building2, Calendar, AlertTriangle, CheckCircle, File, ArrowUpDown, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Search, FileText, Building2, Calendar, AlertTriangle, CheckCircle, File, ArrowUpDown, Eye, Plus, FilePlus } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { toast } from "@/hooks/use-toast";
 
 // Mock claims data
 const claimsData = [
@@ -150,6 +154,26 @@ const claimDetail = {
   ]
 };
 
+// Add new claim form schema
+const newClaimSchema = z.object({
+  patientId: z.string().min(2, {
+    message: "Patient ID must be at least 2 characters.",
+  }),
+  patientName: z.string().min(2, {
+    message: "Patient name must be at least 2 characters.",
+  }),
+  hospital: z.string().min(2, {
+    message: "Hospital is required.",
+  }),
+  service: z.string().min(2, {
+    message: "Service is required.",
+  }),
+  amount: z.string().refine(
+    (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, 
+    { message: "Amount must be a positive number." }
+  ),
+});
+
 const Claims = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
@@ -161,6 +185,18 @@ const Claims = () => {
     direction: "descending"
   });
   const [viewingClaim, setViewingClaim] = useState<null | typeof claimDetail>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  
+  const form = useForm<z.infer<typeof newClaimSchema>>({
+    resolver: zodResolver(newClaimSchema),
+    defaultValues: {
+      patientId: "",
+      patientName: "",
+      hospital: "",
+      service: "",
+      amount: "",
+    },
+  });
   
   // Sorting function
   const sortedClaims = [...claimsData].sort((a, b) => {
@@ -231,10 +267,43 @@ const Claims = () => {
     setViewingClaim(claimDetail);
   };
   
+  // Handle form submission for new claim
+  const handleNewClaim = (values: z.infer<typeof newClaimSchema>) => {
+    // In a real app, this would connect to your backend API
+    console.log("New claim submitted:", values);
+    
+    // Create a new claim object with generated ID and default values
+    const newClaim = {
+      id: `CLM-${Math.floor(Math.random() * 10000)}`,
+      patientId: values.patientId,
+      hospital: values.hospital,
+      service: values.service,
+      amount: parseFloat(values.amount),
+      date: new Date().toISOString().split('T')[0],
+      status: "reviewing",
+      fraudScore: Math.floor(Math.random() * 30) + 10, // Random score between 10-40
+      flagged: false
+    };
+    
+    // In a real application, you would add this to your database
+    // For now, we'll just show a success message
+    toast({
+      title: "Claim Submitted",
+      description: `Claim ${newClaim.id} has been successfully submitted for review.`,
+    });
+    
+    setIsAddDialogOpen(false);
+    form.reset();
+  };
+  
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Claims</h1>
+        <Button onClick={() => setIsAddDialogOpen(true)}>
+          <FilePlus className="mr-2 h-4 w-4" />
+          Add New Claim
+        </Button>
       </div>
       
       {/* Claims Table */}
@@ -513,6 +582,102 @@ const Claims = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Add New Claim Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <FilePlus className="mr-2 h-5 w-5" />
+              Submit New Claim
+            </DialogTitle>
+            <DialogDescription>
+              Enter the details of the new insurance claim.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleNewClaim)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="patientId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Patient ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="PT-12345" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="patientName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Patient Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="hospital"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hospital</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Hospital name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="service"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Service Type</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Cardiology" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Amount (₹)</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.01" min="0" placeholder="0.00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Submit Claim</Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
