@@ -1,87 +1,86 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BarChart, ResponsiveContainer, XAxis, YAxis, Bar, CartesianGrid, Tooltip, Legend } from "recharts";
-import { Search, Building2, AlertTriangle, CheckCircle, ArrowUpDown } from "lucide-react";
+import { Search, Building2, AlertTriangle, CheckCircle, ArrowUpDown, Hospital } from "lucide-react";
 
-// Mock hospitals data
+// Mock hospitals data for India
 const hospitalsData = [
   { 
     id: 1, 
-    name: "Memorial Hospital", 
-    location: "New York, NY", 
-    totalClaims: 423,
-    approved: 368,
-    suspicious: 42, 
-    rejected: 13,
-    fraudRate: 3.1,
+    name: "Apollo Hospitals", 
+    location: "Chennai, Tamil Nadu", 
+    totalClaims: 468,
+    approved: 405,
+    suspicious: 47, 
+    rejected: 16,
+    fraudRate: 3.4,
   },
   { 
     id: 2, 
-    name: "Sunshine Medical Center", 
-    location: "Los Angeles, CA", 
-    totalClaims: 356,
-    approved: 312,
-    suspicious: 31, 
-    rejected: 13,
-    fraudRate: 3.7,
-  },
-  { 
-    id: 3, 
-    name: "City General Hospital", 
-    location: "Chicago, IL", 
-    totalClaims: 287,
-    approved: 264,
-    suspicious: 15, 
-    rejected: 8,
+    name: "Fortis Healthcare", 
+    location: "New Delhi, Delhi", 
+    totalClaims: 392,
+    approved: 346,
+    suspicious: 35, 
+    rejected: 11,
     fraudRate: 2.8,
   },
   { 
-    id: 4, 
-    name: "Riverside Health", 
-    location: "Houston, TX", 
-    totalClaims: 329,
-    approved: 293,
+    id: 3, 
+    name: "AIIMS", 
+    location: "New Delhi, Delhi", 
+    totalClaims: 521,
+    approved: 486,
     suspicious: 28, 
+    rejected: 7,
+    fraudRate: 1.3,
+  },
+  { 
+    id: 4, 
+    name: "Kokilaben Hospital", 
+    location: "Mumbai, Maharashtra", 
+    totalClaims: 329,
+    approved: 289,
+    suspicious: 32, 
     rejected: 8,
     fraudRate: 2.4,
   },
   { 
     id: 5, 
-    name: "Mountain View Medical", 
-    location: "Denver, CO", 
-    totalClaims: 198,
-    approved: 180,
-    suspicious: 12, 
-    rejected: 6,
-    fraudRate: 3.0,
+    name: "Narayana Health", 
+    location: "Bangalore, Karnataka", 
+    totalClaims: 387,
+    approved: 355,
+    suspicious: 24, 
+    rejected: 8,
+    fraudRate: 2.1,
   },
   { 
     id: 6, 
-    name: "Ocean Health System", 
-    location: "Miami, FL", 
-    totalClaims: 265,
-    approved: 227,
-    suspicious: 26, 
-    rejected: 12,
-    fraudRate: 4.5,
+    name: "Medanta Hospital", 
+    location: "Gurgaon, Haryana", 
+    totalClaims: 298,
+    approved: 262,
+    suspicious: 27, 
+    rejected: 9,
+    fraudRate: 3.0,
   },
   { 
     id: 7, 
-    name: "Cedar Valley Hospital", 
-    location: "Dallas, TX", 
-    totalClaims: 221,
-    approved: 203,
-    suspicious: 13, 
-    rejected: 5,
-    fraudRate: 2.3,
+    name: "Max Healthcare", 
+    location: "New Delhi, Delhi", 
+    totalClaims: 312,
+    approved: 283,
+    suspicious: 21, 
+    rejected: 8,
+    fraudRate: 2.6,
   },
   { 
     id: 8, 
-    name: "Oakwood Medical Center", 
-    location: "Atlanta, GA", 
+    name: "Lilavati Hospital", 
+    location: "Mumbai, Maharashtra", 
     totalClaims: 276,
     approved: 251,
     suspicious: 18, 
@@ -91,14 +90,14 @@ const hospitalsData = [
 ];
 
 const hospitalChartData = [
-  { name: "Memorial", approved: 368, suspicious: 42, rejected: 13 },
-  { name: "Sunshine", approved: 312, suspicious: 31, rejected: 13 },
-  { name: "City Gen", approved: 264, suspicious: 15, rejected: 8 },
-  { name: "Riverside", approved: 293, suspicious: 28, rejected: 8 },
-  { name: "Mountain", approved: 180, suspicious: 12, rejected: 6 },
-  { name: "Ocean", approved: 227, suspicious: 26, rejected: 12 },
-  { name: "Cedar", approved: 203, suspicious: 13, rejected: 5 },
-  { name: "Oakwood", approved: 251, suspicious: 18, rejected: 7 },
+  { name: "Apollo", approved: 405, suspicious: 47, rejected: 16 },
+  { name: "Fortis", approved: 346, suspicious: 35, rejected: 11 },
+  { name: "AIIMS", approved: 486, suspicious: 28, rejected: 7 },
+  { name: "Kokilaben", approved: 289, suspicious: 32, rejected: 8 },
+  { name: "Narayana", approved: 355, suspicious: 24, rejected: 8 },
+  { name: "Medanta", approved: 262, suspicious: 27, rejected: 9 },
+  { name: "Max", approved: 283, suspicious: 21, rejected: 8 },
+  { name: "Lilavati", approved: 251, suspicious: 18, rejected: 7 },
 ];
 
 const Hospitals = () => {
@@ -142,17 +141,17 @@ const Hospitals = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Hospitals</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Indian Hospitals</h1>
       </div>
       
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Hospital Claims Distribution</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <Hospital className="h-4 w-4 text-muted-foreground" />
           </div>
           <CardDescription>
-            Distribution of claims by status for each hospital
+            Distribution of claims by status for each hospital in India
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -180,7 +179,7 @@ const Hospitals = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Hospital List</CardTitle>
+            <CardTitle>Indian Hospital List</CardTitle>
             <div className="relative w-64">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -192,7 +191,7 @@ const Hospitals = () => {
             </div>
           </div>
           <CardDescription>
-            Complete list of hospitals with claim statistics
+            Complete list of hospitals in India with claim statistics
           </CardDescription>
         </CardHeader>
         <CardContent>
