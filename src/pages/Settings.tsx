@@ -127,17 +127,19 @@ const Settings = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="timezone">Timezone</Label>
-                    <Select defaultValue="america_new_york">
+                    <Select defaultValue="asia_kolkata">
                       <SelectTrigger id="timezone">
                         <SelectValue placeholder="Select timezone" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="america_new_york">America/New York</SelectItem>
-                        <SelectItem value="america_chicago">America/Chicago</SelectItem>
-                        <SelectItem value="america_denver">America/Denver</SelectItem>
-                        <SelectItem value="america_los_angeles">America/Los Angeles</SelectItem>
-                        <SelectItem value="asia_tokyo">Asia/Tokyo</SelectItem>
-                        <SelectItem value="europe_london">Europe/London</SelectItem>
+                        <SelectItem value="asia_kolkata">Asia/Kolkata (GMT+5:30) - Indian Standard Time</SelectItem>
+                        <SelectItem value="asia_calcutta">Asia/Calcutta (GMT+5:30) - India</SelectItem>
+                        <SelectItem value="asia_karachi">Asia/Karachi (GMT+5) - Pakistan</SelectItem>
+                        <SelectItem value="asia_dhaka">Asia/Dhaka (GMT+6) - Bangladesh</SelectItem>
+                        <SelectItem value="asia_colombo">Asia/Colombo (GMT+5:30) - Sri Lanka</SelectItem>
+                        <SelectItem value="asia_kathmandu">Asia/Kathmandu (GMT+5:45) - Nepal</SelectItem>
+                        <SelectItem value="america_new_york">America/New York (GMT-4)</SelectItem>
+                        <SelectItem value="europe_london">Europe/London (GMT+1)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
