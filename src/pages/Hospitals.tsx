@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { BarChart, ResponsiveContainer, XAxis, YAxis, Bar, CartesianGrid, Tooltip, Legend } from "recharts";
 import { Search, Building2, AlertTriangle, CheckCircle, ArrowUpDown, Hospital } from "lucide-react";
 
-// Mock hospitals data for India
+// Mock hospitals data for Tamil Nadu
 const hospitalsData = [
   { 
     id: 1, 
@@ -87,8 +87,79 @@ const hospitalsData = [
     rejected: 7,
     fraudRate: 2.5,
   },
+  { 
+    id: 9, 
+    name: "Billroth Hospitals", 
+    location: "Chennai, Tamil Nadu", 
+    totalClaims: 352,
+    approved: 326,
+    suspicious: 19, 
+    rejected: 7,
+    fraudRate: 2.0,
+  },
+  { 
+    id: 10, 
+    name: "Meenakshi Mission Hospital", 
+    location: "Madurai, Tamil Nadu", 
+    totalClaims: 411,
+    approved: 386,
+    suspicious: 18, 
+    rejected: 7,
+    fraudRate: 1.7,
+  },
+  { 
+    id: 11, 
+    name: "Kauvery Hospital", 
+    location: "Tiruchirappalli, Tamil Nadu", 
+    totalClaims: 329,
+    approved: 299,
+    suspicious: 22, 
+    rejected: 8,
+    fraudRate: 2.4,
+  },
+  { 
+    id: 12, 
+    name: "Sri Ramachandra Medical Centre", 
+    location: "Chennai, Tamil Nadu", 
+    totalClaims: 385,
+    approved: 352,
+    suspicious: 25, 
+    rejected: 8,
+    fraudRate: 2.1,
+  },
+  { 
+    id: 13, 
+    name: "PSG Hospitals", 
+    location: "Coimbatore, Tamil Nadu", 
+    totalClaims: 304,
+    approved: 278,
+    suspicious: 20, 
+    rejected: 6,
+    fraudRate: 2.0,
+  },
+  { 
+    id: 14, 
+    name: "Ganga Medical Centre", 
+    location: "Coimbatore, Tamil Nadu", 
+    totalClaims: 276,
+    approved: 254,
+    suspicious: 16, 
+    rejected: 6,
+    fraudRate: 2.2,
+  },
+  { 
+    id: 15, 
+    name: "MIOT International", 
+    location: "Chennai, Tamil Nadu", 
+    totalClaims: 342,
+    approved: 314,
+    suspicious: 21, 
+    rejected: 7,
+    fraudRate: 2.0,
+  }
 ];
 
+// Update chart data to include the new hospitals
 const hospitalChartData = [
   { name: "Apollo", approved: 405, suspicious: 47, rejected: 16 },
   { name: "Fortis", approved: 346, suspicious: 35, rejected: 11 },
@@ -98,6 +169,11 @@ const hospitalChartData = [
   { name: "Medanta", approved: 262, suspicious: 27, rejected: 9 },
   { name: "Max", approved: 283, suspicious: 21, rejected: 8 },
   { name: "Lilavati", approved: 251, suspicious: 18, rejected: 7 },
+  { name: "Billroth", approved: 326, suspicious: 19, rejected: 7 },
+  { name: "Meenakshi", approved: 386, suspicious: 18, rejected: 7 },
+  { name: "Kauvery", approved: 299, suspicious: 22, rejected: 8 },
+  { name: "SriRamachandra", approved: 352, suspicious: 25, rejected: 8 },
+  { name: "PSG", approved: 278, suspicious: 20, rejected: 6 },
 ];
 
 const Hospitals = () => {
