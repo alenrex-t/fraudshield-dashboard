@@ -58,8 +58,11 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       >
         <div className="p-4 flex items-center justify-between border-b">
           <div className={cn("flex items-center gap-2", collapsed && "justify-center")}>
-            <Shield className="h-6 w-6 text-primary" />
-            {!collapsed && <span className="text-lg font-bold">Smart i</span>}
+            <div className="relative">
+              <Shield className="h-6 w-6 text-primary" />
+              <span className="absolute text-primary font-bold text-xs" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>i</span>
+            </div>
+            {!collapsed && <span className="text-lg font-bold">SMART i</span>}
           </div>
           <Button
             variant="ghost"
