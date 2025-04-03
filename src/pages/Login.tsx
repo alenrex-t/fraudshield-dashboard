@@ -33,7 +33,7 @@ const Login = () => {
           <div className="flex justify-center mb-2">
             <Shield className="h-12 w-12 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold">FraudShield</h1>
+          <h1 className="text-3xl font-bold">Smart i</h1>
           <p className="text-muted-foreground mt-2">
             Insurance Fraud Detection Portal
           </p>
@@ -53,7 +53,7 @@ const Login = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@fraudshield.com"
+                  placeholder="admin@smarti.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
