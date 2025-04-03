@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Search, FileText, Building2, Calendar, AlertTriangle, CheckCircle, File, ArrowUpDown, Eye, Plus, FilePlus } from "lucide-react";
+import { Search, FileText, Building2, Calendar, AlertTriangle, CheckCircle, File, ArrowUpDown, Eye, Plus, FilePlus, IndianRupee } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -186,6 +187,7 @@ const Claims = () => {
   });
   const [viewingClaim, setViewingClaim] = useState<null | typeof claimDetail>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [claims, setClaims] = useState([...claimsData]);
   
   const form = useForm<z.infer<typeof newClaimSchema>>({
     resolver: zodResolver(newClaimSchema),
@@ -199,7 +201,7 @@ const Claims = () => {
   });
   
   // Sorting function
-  const sortedClaims = [...claimsData].sort((a, b) => {
+  const sortedClaims = [...claims].sort((a, b) => {
     if (sortConfig.key === null) return 0;
     
     if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -269,12 +271,10 @@ const Claims = () => {
   
   // Handle form submission for new claim
   const handleNewClaim = (values: z.infer<typeof newClaimSchema>) => {
-    // In a real app, this would connect to your backend API
-    console.log("New claim submitted:", values);
-    
     // Create a new claim object with generated ID and default values
+    const newClaimId = `CLM-${Math.floor(Math.random() * 10000)}`;
     const newClaim = {
-      id: `CLM-${Math.floor(Math.random() * 10000)}`,
+      id: newClaimId,
       patientId: values.patientId,
       hospital: values.hospital,
       service: values.service,
@@ -285,11 +285,15 @@ const Claims = () => {
       flagged: false
     };
     
-    // In a real application, you would add this to your database
-    // For now, we'll just show a success message
+    // Add new claim to the claims state
+    setClaims(prevClaims => [newClaim, ...prevClaims]);
+    
+    // Switch to the reviewing tab to show the new claim
+    setActiveTab("reviewing");
+    
     toast({
       title: "Claim Submitted",
-      description: `Claim ${newClaim.id} has been successfully submitted for review.`,
+      description: `Claim ${newClaimId} has been successfully submitted for review.`,
     });
     
     setIsAddDialogOpen(false);
@@ -417,7 +421,12 @@ const Claims = () => {
                           </div>
                         </td>
                         <td className="py-3 px-4">{claim.service}</td>
-                        <td className="py-3 px-4">${claim.amount.toFixed(2)}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center">
+                            <IndianRupee className="mr-1 h-3 w-3" />
+                            {claim.amount.toFixed(2)}
+                          </div>
+                        </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center">
                             <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -475,7 +484,12 @@ const Claims = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm">Amount:</span>
-                      <span className="text-sm font-medium">${viewingClaim.amount.toFixed(2)}</span>
+                      <span className="text-sm font-medium">
+                        <div className="flex items-center">
+                          <IndianRupee className="mr-1 h-3 w-3" />
+                          {viewingClaim.amount.toFixed(2)}
+                        </div>
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm">Status:</span>
