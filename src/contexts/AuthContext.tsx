@@ -1,7 +1,18 @@
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { OktaAuth, AuthState } from '@okta/okta-auth-js';
+import { Security, useOktaAuth } from '@okta/okta-react';
+
+// Configure Okta client
+const oktaAuth = new OktaAuth({
+  issuer: 'https://{yourOktaDomain}/oauth2/default',
+  clientId: '{yourClientId}',
+  redirectUri: window.location.origin + '/login/callback',
+  scopes: ['openid', 'profile', 'email'],
+  pkce: true
+});
 
 interface User {
   id: string;
@@ -19,43 +30,45 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// This component uses Okta's Security component
 export function AuthProvider({ children }: { children: ReactNode }) {
+  return (
+    <Security oktaAuth={oktaAuth}>
+      <AuthProviderContent>{children}</AuthProviderContent>
+    </Security>
+  );
+}
+
+// This inner component has access to the Okta hooks
+function AuthProviderContent({ children }: { children: ReactNode }) {
+  const { oktaAuth, authState } = useOktaAuth();
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
-  
-  // Mock user for demo purposes
-  const mockUser = {
-    id: "usr_123",
-    name: "Admin User",
-    email: "admin@fraudshield.com",
-    role: "admin"
-  };
+
+  // Update user when auth state changes
+  useEffect(() => {
+    if (!authState || !authState.isAuthenticated) {
+      setUser(null);
+      return;
+    }
+
+    oktaAuth.getUser().then((info) => {
+      setUser({
+        id: info.sub || '',
+        name: `${info.given_name || ''} ${info.family_name || ''}`.trim(),
+        email: info.email || '',
+        role: info.groups?.includes('Admin') ? 'admin' : 'user'
+      });
+    });
+  }, [authState, oktaAuth]);
 
   const login = async (email: string, password: string) => {
     try {
-      // This is a mock login function. In a real app, you would call your auth API
-      if (email.trim() === "" || password.trim() === "") {
-        throw new Error("Please enter both email and password");
-      }
-      
-      // Simple validation - in real app, would check against database
-      if (password.length < 6) {
-        throw new Error("Password must be at least 6 characters");
-      }
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Set the mock user
-      setUser(mockUser);
-      
-      // Show success notification
+      await oktaAuth.signInWithCredentials({ username: email, password });
       toast.success("Login successful!");
-      
-      // Navigate to dashboard after successful login
       navigate("/dashboard");
     } catch (error) {
-      // Show error notification
+      console.error("Login error:", error);
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
@@ -65,14 +78,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
+    oktaAuth.signOut();
     toast.success("Logged out successfully");
     navigate("/login");
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout }}>
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        isAuthenticated: !!authState?.isAuthenticated, 
+        login, 
+        logout 
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
