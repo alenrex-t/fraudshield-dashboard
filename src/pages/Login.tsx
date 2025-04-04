@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Shield, Info } from "lucide-react";
+import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,11 +30,10 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-2 relative">
+          <div className="flex justify-center mb-2">
             <Shield className="h-12 w-12 text-primary" />
-            <span className="absolute text-primary font-bold text-xl" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>i</span>
           </div>
-          <h1 className="text-3xl font-bold">SMART i</h1>
+          <h1 className="text-3xl font-bold">Smart i</h1>
           <p className="text-muted-foreground mt-2">
             Insurance Fraud Detection Portal
           </p>

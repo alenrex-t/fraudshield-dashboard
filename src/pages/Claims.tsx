@@ -1,843 +1,685 @@
-
-import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  AlertTriangle,
-  CheckCircle,
-  FileText,
-  Ambulance,
-  Car,
-  Building2,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { cn } from "@/lib/utils";
-import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Search, FileText, Building2, Calendar, AlertTriangle, CheckCircle, File, ArrowUpDown, Eye, Plus, FilePlus } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { toast } from "@/hooks/use-toast";
 
-// Define Zod schema for form validation
-const formSchema = z.object({
-  claimId: z.string().min(3, {
-    message: "Claim ID must be at least 3 characters.",
-  }),
-  provider: z.string().min(2, {
-    message: "Provider must be at least 2 characters.",
-  }),
-  claimType: z.enum(["health", "vehicle", "insurance"]),
-  amount: z.number().min(1, {
-    message: "Amount must be greater than 0.",
-  }),
-  dateOfClaim: z.date(),
-  status: z.enum(["pending", "approved", "rejected"]),
-  notes: z.string().optional(),
-});
-
-// Mock data types
-type Claim = {
-  id: number;
-  claimId: string;
-  provider: string;
-  claimType: "health" | "vehicle" | "insurance";
-  amount: number;
-  dateOfClaim: Date;
-  status: "pending" | "approved" | "rejected";
-  notes?: string;
-};
-
-// Mock data
-const initialClaims: Claim[] = [
+// Mock claims data
+const claimsData = [
   {
-    id: 1,
-    claimId: "CLM-2023-001",
-    provider: "City General Hospital",
-    claimType: "health",
-    amount: 2500,
-    dateOfClaim: new Date("2023-01-15"),
+    id: "CLM-2023456",
+    patientId: "PT-10045",
+    hospital: "Memorial Hospital",
+    service: "General Surgery",
+    amount: 3850.75,
+    date: "2023-06-15",
     status: "approved",
-    notes: "Routine checkup.",
+    fraudScore: 12,
+    flagged: false
   },
   {
-    id: 2,
-    claimId: "VCL-2023-002",
-    provider: "AutoFix Services",
-    claimType: "vehicle",
-    amount: 1200,
-    dateOfClaim: new Date("2023-02-20"),
-    status: "pending",
-    notes: "Minor collision repair.",
+    id: "CLM-2023457",
+    patientId: "PT-23781",
+    hospital: "Sunshine Medical Center",
+    service: "Cardiology",
+    amount: 5240.50,
+    date: "2023-06-14",
+    status: "reviewing",
+    fraudScore: 54,
+    flagged: true
   },
   {
-    id: 3,
-    claimId: "CLM-2023-003",
-    provider: "Wellness Clinic",
-    claimType: "health",
-    amount: 800,
-    dateOfClaim: new Date("2023-03-10"),
+    id: "CLM-2023458",
+    patientId: "PT-87452",
+    hospital: "City General Hospital",
+    service: "Orthopedics",
+    amount: 2875.25,
+    date: "2023-06-14",
+    status: "approved",
+    fraudScore: 18,
+    flagged: false
+  },
+  {
+    id: "CLM-2023459",
+    patientId: "PT-43921",
+    hospital: "Riverside Health",
+    service: "Emergency",
+    amount: 4950.00,
+    date: "2023-06-13",
     status: "rejected",
-    notes: "Cosmetic procedure not covered.",
+    fraudScore: 87,
+    flagged: true
   },
   {
-    id: 4,
-    claimId: "VCL-2023-004",
-    provider: "Speedy Auto Repairs",
-    claimType: "vehicle",
-    amount: 3500,
-    dateOfClaim: new Date("2023-04-05"),
+    id: "CLM-2023460",
+    patientId: "PT-56302",
+    hospital: "Mountain View Medical",
+    service: "Imaging",
+    amount: 1250.75,
+    date: "2023-06-13",
     status: "approved",
-    notes: "Engine overhaul.",
+    fraudScore: 8,
+    flagged: false
   },
   {
-    id: 5,
-    claimId: "CLM-2023-005",
-    provider: "Family Health Center",
-    claimType: "health",
-    amount: 1200,
-    dateOfClaim: new Date("2023-05-12"),
-    status: "pending",
-    notes: "Annual physical exam.",
+    id: "CLM-2023461",
+    patientId: "PT-19405",
+    hospital: "Ocean Health System",
+    service: "Primary Care",
+    amount: 375.50,
+    date: "2023-06-12",
+    status: "approved",
+    fraudScore: 15,
+    flagged: false
   },
   {
-    id: 6,
-    claimId: "VCL-2023-006",
-    provider: "Crash Experts",
-    claimType: "vehicle",
-    amount: 5000,
-    dateOfClaim: new Date("2023-06-18"),
+    id: "CLM-2023462",
+    patientId: "PT-67392",
+    hospital: "Cedar Valley Hospital",
+    service: "Neurology",
+    amount: 4325.25,
+    date: "2023-06-12",
+    status: "reviewing",
+    fraudScore: 62,
+    flagged: true
+  },
+  {
+    id: "CLM-2023463",
+    patientId: "PT-82045",
+    hospital: "Oakwood Medical Center",
+    service: "Maternity",
+    amount: 5890.00,
+    date: "2023-06-11",
     status: "rejected",
-    notes: "Totaled vehicle, policy lapsed.",
+    fraudScore: 76,
+    flagged: true
   },
   {
-    id: 7,
-    claimId: "CLM-2023-007",
-    provider: "Global Medical Group",
-    claimType: "health",
-    amount: 1800,
-    dateOfClaim: new Date("2023-07-01"),
+    id: "CLM-2023464",
+    patientId: "PT-30457",
+    hospital: "Memorial Hospital",
+    service: "Pediatrics",
+    amount: 1450.25,
+    date: "2023-06-11",
     status: "approved",
-    notes: "Specialist consultation.",
+    fraudScore: 21,
+    flagged: false
   },
   {
-    id: 8,
-    claimId: "VCL-2023-008",
-    provider: "Top Gear Auto",
-    claimType: "vehicle",
-    amount: 800,
-    dateOfClaim: new Date("2023-08-24"),
-    status: "pending",
-    notes: "Windshield replacement.",
-  },
-  {
-    id: 9,
-    claimId: "CLM-2023-009",
-    provider: "Prime Diagnostics",
-    claimType: "health",
-    amount: 3000,
-    dateOfClaim: new Date("2023-09-30"),
-    status: "approved",
-    notes: "Advanced imaging services.",
-  },
-  {
-    id: 10,
-    claimId: "VCL-2023-010",
-    provider: "Elite Auto Body",
-    claimType: "vehicle",
-    amount: 6200,
-    dateOfClaim: new Date("2023-10-10"),
-    status: "rejected",
-    notes: "Extensive body work, pre-existing damage.",
-  },
-  {
-    id: 11,
-    claimId: "INS-2023-001",
-    provider: "Global Life Insurance",
-    claimType: "insurance",
-    amount: 3200,
-    dateOfClaim: new Date("2023-11-15"),
-    status: "approved",
-    notes: "Life insurance annual payout.",
-  },
-  {
-    id: 12,
-    claimId: "INS-2023-002",
-    provider: "Prudent Insurance Co.",
-    claimType: "insurance",
-    amount: 1800,
-    dateOfClaim: new Date("2023-12-05"),
-    status: "pending",
-    notes: "Property damage claim.",
-  },
-  {
-    id: 13,
-    claimId: "INS-2024-001",
-    provider: "SecureLife Insurance",
-    claimType: "insurance",
-    amount: 5500,
-    dateOfClaim: new Date("2024-01-18"),
-    status: "approved",
-    notes: "Critical illness coverage.",
-  },
-  {
-    id: 14,
-    claimId: "INS-2024-002",
-    provider: "Shield Insurance Group",
-    claimType: "insurance",
-    amount: 4200,
-    dateOfClaim: new Date("2024-02-22"),
-    status: "rejected",
-    notes: "Policy expired before incident.",
-  },
-  {
-    id: 15,
-    claimId: "INS-2024-003",
-    provider: "Umbrella Coverage Inc.",
-    claimType: "insurance",
-    amount: 2700,
-    dateOfClaim: new Date("2024-03-10"),
-    status: "pending",
-    notes: "Flood damage assessment ongoing.",
-  },
-  {
-    id: 16,
-    claimId: "CLM-2024-001",
-    provider: "City General Hospital",
-    claimType: "health",
-    amount: 2800,
-    dateOfClaim: new Date("2024-01-22"),
-    status: "approved",
-    notes: "Follow-up appointment.",
-  },
-  {
-    id: 17,
-    claimId: "VCL-2024-002",
-    provider: "Precision Auto Works",
-    claimType: "vehicle",
-    amount: 1500,
-    dateOfClaim: new Date("2024-02-28"),
-    status: "pending",
-    notes: "Brake replacement.",
-  },
-  {
-    id: 18,
-    claimId: "CLM-2024-003",
-    provider: "Wellness Clinic",
-    claimType: "health",
-    amount: 700,
-    dateOfClaim: new Date("2024-03-05"),
-    status: "rejected",
-    notes: "Wellness program not covered.",
-  },
-  {
-    id: 19,
-    claimId: "VCL-2024-004",
-    provider: "Express Auto Care",
-    claimType: "vehicle",
-    amount: 4000,
-    dateOfClaim: new Date("2024-04-11"),
-    status: "approved",
-    notes: "Transmission repair.",
-  },
-  {
-    id: 20,
-    claimId: "CLM-2024-005",
-    provider: "Family Health Center",
-    claimType: "health",
-    amount: 1300,
-    dateOfClaim: new Date("2024-05-18"),
-    status: "pending",
-    notes: "Allergy testing.",
-  },
+    id: "CLM-2023465",
+    patientId: "PT-75982",
+    hospital: "Sunshine Medical Center",
+    service: "Dermatology",
+    amount: 825.50,
+    date: "2023-06-10",
+    status: "reviewing",
+    fraudScore: 35,
+    flagged: true
+  }
 ];
 
-const Claims = () => {
-  const [claims, setClaims] = useState<Claim[]>(initialClaims);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortColumn, setSortColumn] = useState<keyof Claim | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<"all" | "health" | "vehicle" | "insurance">("all");
-  const claimsPerPage = 10;
-  const { toast } = useToast();
+// Claim detail (when a claim is clicked)
+const claimDetail = {
+  id: "CLM-2023457",
+  patientId: "PT-23781",
+  patientName: "John Doe",
+  patientAge: 45,
+  hospital: "Sunshine Medical Center",
+  service: "Cardiology",
+  procedure: "Cardiac Catheterization",
+  provider: "Dr. Sarah Johnson",
+  amount: 5240.50,
+  date: "2023-06-14",
+  status: "reviewing",
+  fraudScore: 54,
+  flagged: true,
+  flags: [
+    "Unusual billing pattern detected",
+    "Provider has had multiple similar claims rejected",
+    "Procedure cost above average for this region"
+  ],
+  timeline: [
+    { date: "2023-06-14 09:23:15", event: "Claim submitted", user: "System" },
+    { date: "2023-06-14 09:23:45", event: "AI analysis flagged potential issues", user: "FraudShield AI" },
+    { date: "2023-06-14 11:30:12", event: "Assigned for manual review", user: "System" },
+    { date: "2023-06-14 14:45:30", event: "Documentation requested", user: "Mark Wilson" }
+  ]
+};
 
-  // Form state using react-hook-form
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+// Add new claim form schema
+const newClaimSchema = z.object({
+  patientId: z.string().min(2, {
+    message: "Patient ID must be at least 2 characters.",
+  }),
+  patientName: z.string().min(2, {
+    message: "Patient name must be at least 2 characters.",
+  }),
+  hospital: z.string().min(2, {
+    message: "Hospital is required.",
+  }),
+  service: z.string().min(2, {
+    message: "Service is required.",
+  }),
+  amount: z.string().refine(
+    (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, 
+    { message: "Amount must be a positive number." }
+  ),
+});
+
+const Claims = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof typeof claimsData[0] | null;
+    direction: 'ascending' | 'descending';
+  }>({
+    key: "date",
+    direction: "descending"
+  });
+  const [viewingClaim, setViewingClaim] = useState<null | typeof claimDetail>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  
+  const form = useForm<z.infer<typeof newClaimSchema>>({
+    resolver: zodResolver(newClaimSchema),
     defaultValues: {
-      claimId: "",
-      provider: "",
-      claimType: "health",
-      amount: 0,
-      dateOfClaim: new Date(),
-      status: "pending",
-      notes: "",
+      patientId: "",
+      patientName: "",
+      hospital: "",
+      service: "",
+      amount: "",
     },
   });
-
-  // Function to handle form submission
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Add new claim to the state
-    const newClaim: Claim = {
-      id: claims.length + 1,
-      claimId: values.claimId,
-      provider: values.provider,
-      claimType: values.claimType,
-      amount: values.amount,
-      dateOfClaim: values.dateOfClaim,
-      status: values.status,
-      notes: values.notes,
-    };
+  
+  // Sorting function
+  const sortedClaims = [...claimsData].sort((a, b) => {
+    if (sortConfig.key === null) return 0;
     
-    setClaims([...claims, newClaim]);
-
-    // Reset the form
-    form.reset();
-
-    // Display success toast
-    toast({
-      title: "Claim added successfully!",
-      description: "Your claim has been added to the list.",
-    });
-  };
-
-  // Function to handle claim update
-  const updateClaim = (id: number, updatedClaim: Claim) => {
-    const updatedClaims = claims.map((claim) =>
-      claim.id === id ? updatedClaim : claim
-    );
-    setClaims(updatedClaims);
-  };
-
-  // Function to handle claim deletion
-  const deleteClaim = (id: number) => {
-    const updatedClaims = claims.filter((claim) => claim.id !== id);
-    setClaims(updatedClaims);
-  };
-
-  // Function to handle search
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
-    setCurrentPage(1); // Reset to first page when searching
-  };
-
-  // Function to handle sorting
-  const handleSort = (column: keyof Claim) => {
-    if (sortColumn === column) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortColumn(column);
-      setSortDirection("asc");
+    if (a[sortConfig.key] < b[sortConfig.key]) {
+      return sortConfig.direction === 'ascending' ? -1 : 1;
     }
-  };
-
-  // Function to format date
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString();
-  };
-
-  // Filter claims based on tab and search query
-  const filteredClaims = claims.filter((claim) => {
-    // Filter by tab
-    if (activeTab !== "all" && claim.claimType !== activeTab) {
-      return false;
-    }
-    
-    // Filter by search query
-    const searchRegex = new RegExp(searchQuery, "i");
-    return (
-      searchRegex.test(claim.claimId) ||
-      searchRegex.test(claim.provider) ||
-      searchRegex.test(claim.claimType) ||
-      searchRegex.test(claim.amount.toString()) ||
-      searchRegex.test(formatDate(claim.dateOfClaim)) ||
-      searchRegex.test(claim.status)
-    );
-  });
-
-  // Sort claims based on sort column and direction
-  const sortedClaims = [...filteredClaims].sort((a, b) => {
-    if (sortColumn) {
-      const aValue = a[sortColumn];
-      const bValue = b[sortColumn];
-
-      if (aValue === undefined || bValue === undefined) {
-        return 0;
-      }
-
-      let comparison = 0;
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        comparison = aValue.localeCompare(bValue);
-      } else if (typeof aValue === "number" && typeof bValue === "number") {
-        comparison = aValue - bValue;
-      } else if (aValue instanceof Date && bValue instanceof Date) {
-        comparison = aValue.getTime() - bValue.getTime();
-      }
-
-      return sortDirection === "asc" ? comparison : -comparison;
+    if (a[sortConfig.key] > b[sortConfig.key]) {
+      return sortConfig.direction === 'ascending' ? 1 : -1;
     }
     return 0;
   });
-
-  // Paginate claims
-  const startIndex = (currentPage - 1) * claimsPerPage;
-  const endIndex = startIndex + claimsPerPage;
-  const paginatedClaims = sortedClaims.slice(startIndex, endIndex);
-
-  // Change page
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
+  
+  // Filtering by tab and search term
+  const filteredClaims = sortedClaims.filter(claim => {
+    const matchesSearch = 
+      claim.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      claim.hospital.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      claim.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      claim.patientId.toLowerCase().includes(searchTerm.toLowerCase());
+      
+    if (activeTab === "all") return matchesSearch;
+    if (activeTab === "approved") return claim.status === "approved" && matchesSearch;
+    if (activeTab === "reviewing") return claim.status === "reviewing" && matchesSearch;
+    if (activeTab === "rejected") return claim.status === "rejected" && matchesSearch;
+    if (activeTab === "flagged") return claim.flagged && matchesSearch;
+    
+    return matchesSearch;
+  });
+  
+  // Request sort
+  const requestSort = (key: keyof typeof claimsData[0]) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
   };
-
-  // Generate page numbers for pagination
-  const pageCount = Math.ceil(sortedClaims.length / claimsPerPage);
-  const pageNumbers = Array.from({ length: pageCount }, (_, i) => i + 1);
-
-  // Sort options
-  const sortOptions = [
-    { label: "Claim ID", value: "claimId" },
-    { label: "Provider", value: "provider" },
-    { label: "Claim Type", value: "claimType" },
-    { label: "Amount", value: "amount" },
-    { label: "Date of Claim", value: "dateOfClaim" },
-    { label: "Status", value: "status" },
-  ];
-
+  
+  // Get status badge
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "approved":
+        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Approved</Badge>;
+      case "reviewing":
+        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Reviewing</Badge>;
+      case "rejected":
+        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Rejected</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
+    }
+  };
+  
+  // Get fraud score badge
+  const getFraudScoreBadge = (score: number) => {
+    if (score < 30) {
+      return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">{score}%</Badge>;
+    } else if (score < 70) {
+      return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">{score}%</Badge>;
+    } else {
+      return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">{score}%</Badge>;
+    }
+  };
+  
+  // Handle claim click to show detail
+  const handleViewClaim = (claimId: string) => {
+    setViewingClaim(claimDetail);
+  };
+  
+  // Handle form submission for new claim
+  const handleNewClaim = (values: z.infer<typeof newClaimSchema>) => {
+    // In a real app, this would connect to your backend API
+    console.log("New claim submitted:", values);
+    
+    // Create a new claim object with generated ID and default values
+    const newClaim = {
+      id: `CLM-${Math.floor(Math.random() * 10000)}`,
+      patientId: values.patientId,
+      hospital: values.hospital,
+      service: values.service,
+      amount: parseFloat(values.amount),
+      date: new Date().toISOString().split('T')[0],
+      status: "reviewing",
+      fraudScore: Math.floor(Math.random() * 30) + 10, // Random score between 10-40
+      flagged: false
+    };
+    
+    // In a real application, you would add this to your database
+    // For now, we'll just show a success message
+    toast({
+      title: "Claim Submitted",
+      description: `Claim ${newClaim.id} has been successfully submitted for review.`,
+    });
+    
+    setIsAddDialogOpen(false);
+    form.reset();
+  };
+  
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Claims</h1>
-        <div className="flex items-center space-x-4">
-          <Input
-            type="search"
-            placeholder="Search claims..."
-            value={searchQuery}
-            onChange={handleSearch}
-          />
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline">Add Claim</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Add Claim</DialogTitle>
-                <DialogDescription>
-                  Add a new claim to the list.
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="claimId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Claim ID</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Claim ID" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="provider"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Provider</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Provider" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="claimType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Claim Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select claim type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="health">Health</SelectItem>
-                            <SelectItem value="vehicle">Vehicle</SelectItem>
-                            <SelectItem value="insurance">Insurance</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Amount</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="Amount"
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(Number(e.target.value))
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="dateOfClaim"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Date of Claim</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-[240px] pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="center" side="bottom">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormDescription>
-                          Date when the claim was made.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="pending" />
-                            </FormControl>
-                            <FormLabel>Pending</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="approved" />
-                            </FormControl>
-                            <FormLabel>Approved</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="rejected" />
-                            </FormControl>
-                            <FormLabel>Rejected</FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Notes</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Notes"
-                            className="resize-none"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Additional notes about the claim.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit">Add Claim</Button>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Button onClick={() => setIsAddDialogOpen(true)}>
+          <FilePlus className="mr-2 h-4 w-4" />
+          Add New Claim
+        </Button>
       </div>
-
+      
+      {/* Claims Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Claims List</CardTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CardTitle className="flex items-center">
+              <FileText className="mr-2 h-5 w-5" />
+              Claims Management
+            </CardTitle>
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search claims..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
           <CardDescription>
-            All claims submitted by customers.
+            Review and manage insurance claims
           </CardDescription>
-          <Tabs 
-            defaultValue="all" 
-            className="mt-4"
-            onValueChange={(value) => setActiveTab(value as "all" | "health" | "vehicle" | "insurance")}
-          >
-            <TabsList className="grid grid-cols-4 mb-4">
-              <TabsTrigger value="all">All Claims</TabsTrigger>
-              <TabsTrigger value="health">Health</TabsTrigger>
-              <TabsTrigger value="vehicle">Vehicle</TabsTrigger>
-              <TabsTrigger value="insurance">Insurance</TabsTrigger>
-            </TabsList>
-          </Tabs>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {sortOptions.map((option) => (
-                    <TableHead
-                      key={option.value}
-                      className="cursor-pointer"
-                      onClick={() => handleSort(option.value as keyof Claim)}
-                    >
-                      {option.label}
-                      {sortColumn === option.value && (
-                        <span>{sortDirection === "asc" ? " ▲" : " ▼"}</span>
-                      )}
-                    </TableHead>
-                  ))}
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedClaims.map((claim) => (
-                  <TableRow key={claim.id}>
-                    <TableCell>{claim.claimId}</TableCell>
-                    <TableCell>{claim.provider}</TableCell>
-                    <TableCell>
-                      {claim.claimType === "health" ? (
-                        <Badge variant="outline" className="bg-blue-50 text-blue-800 hover:bg-blue-50">
-                          <Ambulance className="mr-1 h-3 w-3" /> Health
-                        </Badge>
-                      ) : claim.claimType === "vehicle" ? (
-                        <Badge variant="outline" className="bg-green-50 text-green-800 hover:bg-green-50">
-                          <Car className="mr-1 h-3 w-3" /> Vehicle
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-purple-50 text-purple-800 hover:bg-purple-50">
-                          <Building2 className="mr-1 h-3 w-3" /> Insurance
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>{claim.amount}</TableCell>
-                    <TableCell>{formatDate(claim.dateOfClaim)}</TableCell>
-                    <TableCell>{claim.status}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <FileText className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
-                              <DialogTitle>View Claim</DialogTitle>
-                              <DialogDescription>
-                                View details of the claim.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div>
-                                <Label>Claim ID</Label>
-                                <Input value={claim.claimId} readOnly />
-                              </div>
-                              <div>
-                                <Label>Provider</Label>
-                                <Input value={claim.provider} readOnly />
-                              </div>
-                              <div>
-                                <Label>Claim Type</Label>
-                                <Input value={claim.claimType} readOnly />
-                              </div>
-                              <div>
-                                <Label>Amount</Label>
-                                <Input value={claim.amount.toString()} readOnly />
-                              </div>
-                              <div>
-                                <Label>Date of Claim</Label>
-                                <Input value={formatDate(claim.dateOfClaim)} readOnly />
-                              </div>
-                              <div>
-                                <Label>Status</Label>
-                                <Input value={claim.status} readOnly />
-                              </div>
-                              <div>
-                                <Label>Notes</Label>
-                                <Textarea value={claim.notes} readOnly />
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <AlertTriangle className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
-                              <DialogTitle>Delete Claim</DialogTitle>
-                              <DialogDescription>
-                                Are you sure you want to delete this claim?
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="flex justify-end space-x-2">
-                              <Button variant="secondary">Cancel</Button>
-                              <Button
-                                variant="destructive"
-                                onClick={() => deleteClaim(claim.id)}
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="all">All Claims</TabsTrigger>
+              <TabsTrigger value="approved">Approved</TabsTrigger>
+              <TabsTrigger value="reviewing">Reviewing</TabsTrigger>
+              <TabsTrigger value="rejected">Rejected</TabsTrigger>
+              <TabsTrigger value="flagged">Flagged</TabsTrigger>
+            </TabsList>
+            <TabsContent value={activeTab} className="m-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="font-medium text-left py-3 px-4">
+                        <Button 
+                          variant="ghost" 
+                          className="font-medium p-0 hover:bg-transparent"
+                          onClick={() => requestSort('id')}
+                        >
+                          Claim ID
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </th>
+                      <th className="font-medium text-left py-3 px-4">Patient ID</th>
+                      <th className="font-medium text-left py-3 px-4">
+                        <Button 
+                          variant="ghost" 
+                          className="font-medium p-0 hover:bg-transparent"
+                          onClick={() => requestSort('hospital')}
+                        >
+                          Hospital
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </th>
+                      <th className="font-medium text-left py-3 px-4">Service</th>
+                      <th className="font-medium text-left py-3 px-4">
+                        <Button 
+                          variant="ghost" 
+                          className="font-medium p-0 hover:bg-transparent"
+                          onClick={() => requestSort('amount')}
+                        >
+                          Amount
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </th>
+                      <th className="font-medium text-left py-3 px-4">
+                        <Button 
+                          variant="ghost" 
+                          className="font-medium p-0 hover:bg-transparent"
+                          onClick={() => requestSort('date')}
+                        >
+                          Date
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </th>
+                      <th className="font-medium text-left py-3 px-4">Status</th>
+                      <th className="font-medium text-left py-3 px-4">
+                        <Button 
+                          variant="ghost" 
+                          className="font-medium p-0 hover:bg-transparent"
+                          onClick={() => requestSort('fraudScore')}
+                        >
+                          Fraud Score
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </th>
+                      <th className="font-medium text-left py-3 px-4">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredClaims.map((claim) => (
+                      <tr key={claim.id} className="border-b hover:bg-muted/50">
+                        <td className="py-3 px-4 font-medium">
+                          <div className="flex items-center">
+                            {claim.flagged && (
+                              <AlertTriangle className="mr-2 h-4 w-4 text-red-500" />
+                            )}
+                            {claim.id}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">{claim.patientId}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center">
+                            <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                            {claim.hospital}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">{claim.service}</td>
+                        <td className="py-3 px-4">${claim.amount.toFixed(2)}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center">
+                            <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                            {claim.date}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">{getStatusBadge(claim.status)}</td>
+                        <td className="py-3 px-4">{getFraudScoreBadge(claim.fraudScore)}</td>
+                        <td className="py-3 px-4">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleViewClaim(claim.id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={7}>
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (currentPage > 1) handlePageChange(currentPage - 1);
-                      }}
-                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                    />
-                  </PaginationItem>
-                  
-                  {pageNumbers.map((page) => (
-                    <PaginationItem key={page} className={currentPage === page ? "font-bold" : ""}>
-                      <PaginationLink
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handlePageChange(page);
-                        }}
-                        isActive={currentPage === page}
-                      >
-                        {page}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
-                  
-                  <PaginationItem>
-                    <PaginationNext
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (currentPage < pageCount) handlePageChange(currentPage + 1);
-                      }}
-                      className={currentPage === pageCount ? "pointer-events-none opacity-50" : ""}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </TableCell>
-          </TableRow>
-        </TableFooter>
       </Card>
+      
+      {/* Claim Detail Dialog */}
+      <Dialog open={!!viewingClaim} onOpenChange={(open) => !open && setViewingClaim(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <File className="mr-2 h-5 w-5" />
+              Claim Details
+            </DialogTitle>
+            <DialogDescription>
+              Detailed information and AI analysis for claim {viewingClaim?.id}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {viewingClaim && (
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Claim Information</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm">Claim ID:</span>
+                      <span className="text-sm font-medium">{viewingClaim.id}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Date Submitted:</span>
+                      <span className="text-sm font-medium">{viewingClaim.date}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Amount:</span>
+                      <span className="text-sm font-medium">${viewingClaim.amount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Status:</span>
+                      <span>{getStatusBadge(viewingClaim.status)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Fraud Score:</span>
+                      <span>{getFraudScoreBadge(viewingClaim.fraudScore)}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Patient & Provider</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm">Patient ID:</span>
+                      <span className="text-sm font-medium">{viewingClaim.patientId}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Patient Name:</span>
+                      <span className="text-sm font-medium">{viewingClaim.patientName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Patient Age:</span>
+                      <span className="text-sm font-medium">{viewingClaim.patientAge}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Hospital:</span>
+                      <span className="text-sm font-medium">{viewingClaim.hospital}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Provider:</span>
+                      <span className="text-sm font-medium">{viewingClaim.provider}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Medical Information */}
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Medical Information</h3>
+                <div className="p-3 bg-muted rounded-md">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm">Service Category:</span>
+                    <span className="text-sm font-medium">{viewingClaim.service}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Procedure:</span>
+                    <span className="text-sm font-medium">{viewingClaim.procedure}</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* AI Flags */}
+              {viewingClaim.flagged && (
+                <div>
+                  <h3 className="text-sm font-medium text-red-500 flex items-center mb-2">
+                    <AlertTriangle className="h-4 w-4 mr-1" />
+                    Fraud Detection Flags
+                  </h3>
+                  <div className="p-3 bg-red-50 text-red-800 rounded-md space-y-2">
+                    {viewingClaim.flags.map((flag, index) => (
+                      <div key={index} className="flex items-start">
+                        <AlertTriangle className="h-4 w-4 mr-2 mt-0.5" />
+                        <span className="text-sm">{flag}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Timeline */}
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Activity Timeline</h3>
+                <div className="space-y-3">
+                  {viewingClaim.timeline.map((item, index) => (
+                    <div key={index} className="flex">
+                      <div className="mr-3 relative">
+                        <div className="h-3 w-3 rounded-full bg-primary mt-1.5"></div>
+                        {index < viewingClaim.timeline.length - 1 && (
+                          <div className="absolute left-1.5 top-4 h-full w-px bg-muted-foreground"></div>
+                        )}
+                      </div>
+                      <div className="pb-5">
+                        <div className="text-xs text-muted-foreground">{item.date}</div>
+                        <div className="text-sm font-medium">{item.event}</div>
+                        <div className="text-xs text-muted-foreground">By {item.user}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2">
+                <Button variant="outline">Request More Info</Button>
+                {viewingClaim.status === "reviewing" && (
+                  <>
+                    <Button variant="destructive">Reject Claim</Button>
+                    <Button variant="default">Approve Claim</Button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Add New Claim Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <FilePlus className="mr-2 h-5 w-5" />
+              Submit New Claim
+            </DialogTitle>
+            <DialogDescription>
+              Enter the details of the new insurance claim.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleNewClaim)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="patientId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Patient ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="PT-12345" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="patientName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Patient Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="hospital"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hospital</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Hospital name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="service"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Service Type</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Cardiology" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Amount (₹)</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.01" min="0" placeholder="0.00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Submit Claim</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
