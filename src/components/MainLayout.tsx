@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, FileText, Building2, Settings, LogOut, Menu, X, Shield } from "lucide-react";
+import { LayoutDashboard, FileText, Building2, Settings, LogOut, Menu, X, Shield, Car } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItemProps {
@@ -44,6 +44,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { path: "/claims", label: "Claims", icon: FileText },
     { path: "/hospitals", label: "Hospitals", icon: Building2 },
+    { path: "/vehicle-insurers", label: "Vehicle Insurers", icon: Car },
     { path: "/settings", label: "Settings", icon: Settings },
   ];
 

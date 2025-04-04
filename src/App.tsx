@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Claims from "./pages/Claims";
 import Hospitals from "./pages/Hospitals";
+import VehicleInsurers from "./pages/VehicleInsurers";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -53,6 +54,14 @@ const App = () => (
               <ProtectedRoute>
                 <MainLayout>
                   <Hospitals />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/vehicle-insurers" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <VehicleInsurers />
                 </MainLayout>
               </ProtectedRoute>
             } />
