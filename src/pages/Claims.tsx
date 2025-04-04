@@ -23,8 +23,81 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// Define types for our claims
+type HealthClaim = {
+  id: string;
+  patientId: string;
+  hospital: string;
+  service: string;
+  amount: number;
+  date: string;
+  status: string;
+  fraudScore: number;
+  flagged: boolean;
+  type: "health";
+  patientName?: string;
+};
+
+type VehicleClaim = {
+  id: string;
+  policyId: string;
+  vehicleNo: string;
+  vehicleModel: string;
+  damageType: string;
+  amount: number;
+  date: string;
+  status: string;
+  fraudScore: number;
+  flagged: boolean;
+  type: "vehicle";
+  policyHolder?: string;
+};
+
+type Claim = HealthClaim | VehicleClaim;
+
+// Define types for claim details
+type HealthClaimDetail = {
+  id: string;
+  patientId: string;
+  patientName: string;
+  patientAge: number;
+  hospital: string;
+  service: string;
+  procedure: string;
+  provider: string;
+  amount: number;
+  date: string;
+  status: string;
+  fraudScore: number;
+  flagged: boolean;
+  type: "health";
+  flags: string[];
+  timeline: { date: string; event: string; user: string }[];
+};
+
+type VehicleClaimDetail = {
+  id: string;
+  policyId: string;
+  policyHolder: string;
+  vehicleNo: string;
+  vehicleModel: string;
+  yearOfManufacture: number;
+  damageType: string;
+  workshopName: string;
+  amount: number;
+  date: string;
+  status: string;
+  fraudScore: number;
+  flagged: boolean;
+  type: "vehicle";
+  flags: string[];
+  timeline: { date: string; event: string; user: string }[];
+};
+
+type ClaimDetail = HealthClaimDetail | VehicleClaimDetail;
+
 // Mock claims data
-const claimsData = [
+const claimsData: Claim[] = [
   {
     id: "CLM-2023456",
     patientId: "PT-10045",
@@ -151,8 +224,8 @@ const claimsData = [
   }
 ];
 
-// Claim detail (when a claim is clicked) - now with conditional type
-const claimDetail = {
+// Claim detail (when a claim is clicked)
+const healthClaimDetail: HealthClaimDetail = {
   id: "CLM-2023457",
   patientId: "PT-23781",
   patientName: "John Doe",
@@ -180,7 +253,7 @@ const claimDetail = {
   ]
 };
 
-const vehicleClaimDetail = {
+const vehicleClaimDetail: VehicleClaimDetail = {
   id: "VCL-1023457",
   policyId: "POL-68942",
   policyHolder: "Rahul Sharma",
@@ -258,16 +331,16 @@ const Claims = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [sortConfig, setSortConfig] = useState<{
-    key: keyof typeof claimsData[0] | null;
+    key: keyof Claim | null;
     direction: 'ascending' | 'descending';
   }>({
     key: "date",
     direction: "descending"
   });
-  const [viewingClaim, setViewingClaim] = useState<null | (typeof claimDetail | typeof vehicleClaimDetail)>(null);
+  const [viewingClaim, setViewingClaim] = useState<ClaimDetail | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [claimTypeToAdd, setClaimTypeToAdd] = useState<"health" | "vehicle">("health");
-  const [claims, setClaims] = useState([...claimsData]);
+  const [claims, setClaims] = useState<Claim[]>([...claimsData]);
   const [insuranceFilter, setInsuranceFilter] = useState<"all" | "health" | "vehicle">("all");
   
   const healthClaimForm = useForm<z.infer<typeof newHealthClaimSchema>>({
@@ -338,7 +411,7 @@ const Claims = () => {
   });
   
   // Request sort
-  const requestSort = (key: keyof typeof claimsData[0]) => {
+  const requestSort = (key: keyof Claim) => {
     let direction: 'ascending' | 'descending' = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
       direction = 'descending';
@@ -378,7 +451,7 @@ const Claims = () => {
     
     if (claim) {
       if (claim.type === "health") {
-        setViewingClaim(claimDetail);
+        setViewingClaim(healthClaimDetail);
       } else {
         setViewingClaim(vehicleClaimDetail);
       }
@@ -389,7 +462,7 @@ const Claims = () => {
   const handleNewHealthClaim = (values: z.infer<typeof newHealthClaimSchema>) => {
     // Create a new claim object with generated ID and default values
     const newClaimId = `CLM-${Math.floor(Math.random() * 10000)}`;
-    const newClaim = {
+    const newClaim: HealthClaim = {
       id: newClaimId,
       patientId: values.patientId,
       patientName: values.patientName,
@@ -400,7 +473,7 @@ const Claims = () => {
       status: "reviewing",
       fraudScore: Math.floor(Math.random() * 30) + 10, // Random score between 10-40
       flagged: false,
-      type: "health" as const
+      type: "health"
     };
     
     // Add new claim to the claims state
@@ -423,20 +496,19 @@ const Claims = () => {
   const handleNewVehicleClaim = (values: z.infer<typeof newVehicleClaimSchema>) => {
     // Create a new claim object with generated ID and default values
     const newClaimId = `VCL-${Math.floor(Math.random() * 10000)}`;
-    const newClaim = {
+    const newClaim: VehicleClaim = {
       id: newClaimId,
       policyId: values.policyId,
       policyHolder: values.policyHolder,
       vehicleNo: values.vehicleNo,
       vehicleModel: values.vehicleModel,
       damageType: values.damageType,
-      workshopName: values.workshopName,
       amount: parseFloat(values.amount),
       date: new Date().toISOString().split('T')[0],
       status: "reviewing",
       fraudScore: Math.floor(Math.random() * 30) + 10, // Random score between 10-40
       flagged: false,
-      type: "vehicle" as const
+      type: "vehicle"
     };
     
     // Add new claim to the claims state
@@ -730,46 +802,46 @@ const Claims = () => {
                       <>
                         <div className="flex justify-between">
                           <span className="text-sm">Patient ID:</span>
-                          <span className="text-sm font-medium">{viewingClaim.patientId}</span>
+                          <span className="text-sm font-medium">{(viewingClaim as HealthClaimDetail).patientId}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Patient Name:</span>
-                          <span className="text-sm font-medium">{viewingClaim.patientName}</span>
+                          <span className="text-sm font-medium">{(viewingClaim as HealthClaimDetail).patientName}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Patient Age:</span>
-                          <span className="text-sm font-medium">{viewingClaim.patientAge}</span>
+                          <span className="text-sm font-medium">{(viewingClaim as HealthClaimDetail).patientAge}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Hospital:</span>
-                          <span className="text-sm font-medium">{viewingClaim.hospital}</span>
+                          <span className="text-sm font-medium">{(viewingClaim as HealthClaimDetail).hospital}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Provider:</span>
-                          <span className="text-sm font-medium">{viewingClaim.provider}</span>
+                          <span className="text-sm font-medium">{(viewingClaim as HealthClaimDetail).provider}</span>
                         </div>
                       </>
                     ) : (
                       <>
                         <div className="flex justify-between">
                           <span className="text-sm">Policy ID:</span>
-                          <span className="text-sm font-medium">{viewingClaim.policyId}</span>
+                          <span className="text-sm font-medium">{(viewingClaim as VehicleClaimDetail).policyId}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Policy Holder:</span>
-                          <span className="text-sm font-medium">{viewingClaim.policyHolder}</span>
+                          <span className="text-sm font-medium">{(viewingClaim as VehicleClaimDetail).policyHolder}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Vehicle Number:</span>
-                          <span className="text-sm font-medium">{viewingClaim.vehicleNo}</span>
+                          <span className="text-sm font-medium">{(viewingClaim as VehicleClaimDetail).vehicleNo}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Vehicle Model:</span>
-                          <span className="text-sm font-medium">{viewingClaim.vehicleModel}</span>
+                          <span className="text-sm font-medium">{(viewingClaim as VehicleClaimDetail).vehicleModel}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Manufacture Year:</span>
-                          <span className="text-sm font-medium">{viewingClaim.yearOfManufacture}</span>
+                          <span className="text-sm font-medium">{(viewingClaim as VehicleClaimDetail).yearOfManufacture}</span>
                         </div>
                       </>
                     )}
@@ -787,22 +859,22 @@ const Claims = () => {
                     <>
                       <div className="flex justify-between mb-2">
                         <span className="text-sm">Service Category:</span>
-                        <span className="text-sm font-medium">{viewingClaim.service}</span>
+                        <span className="text-sm font-medium">{(viewingClaim as HealthClaimDetail).service}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Procedure:</span>
-                        <span className="text-sm font-medium">{viewingClaim.procedure}</span>
+                        <span className="text-sm font-medium">{(viewingClaim as HealthClaimDetail).procedure}</span>
                       </div>
                     </>
                   ) : (
                     <>
                       <div className="flex justify-between mb-2">
                         <span className="text-sm">Damage Type:</span>
-                        <span className="text-sm font-medium">{viewingClaim.damageType}</span>
+                        <span className="text-sm font-medium">{(viewingClaim as VehicleClaimDetail).damageType}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Workshop:</span>
-                        <span className="text-sm font-medium">{viewingClaim.workshopName}</span>
+                        <span className="text-sm font-medium">{(viewingClaim as VehicleClaimDetail).workshopName}</span>
                       </div>
                     </>
                   )}
