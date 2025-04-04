@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -31,6 +32,7 @@ import {
   FileText,
   Ambulance,
   Car,
+  Building2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -65,11 +67,12 @@ import {
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { DatePicker } from "@/components/ui/date-picker";
+import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Define Zod schema for form validation
 const formSchema = z.object({
@@ -79,7 +82,7 @@ const formSchema = z.object({
   provider: z.string().min(2, {
     message: "Provider must be at least 2 characters.",
   }),
-  claimType: z.enum(["health", "vehicle"]),
+  claimType: z.enum(["health", "vehicle", "insurance"]),
   amount: z.number().min(1, {
     message: "Amount must be greater than 0.",
   }),
@@ -93,7 +96,7 @@ type Claim = {
   id: number;
   claimId: string;
   provider: string;
-  claimType: "health" | "vehicle";
+  claimType: "health" | "vehicle" | "insurance";
   amount: number;
   dateOfClaim: Date;
   status: "pending" | "approved" | "rejected";
@@ -204,26 +207,56 @@ const initialClaims: Claim[] = [
   },
   {
     id: 11,
-    claimId: "CLM-2023-011",
-    provider: "Holistic Healing Center",
-    claimType: "health",
-    amount: 950,
-    dateOfClaim: new Date("2023-11-03"),
+    claimId: "INS-2023-001",
+    provider: "Global Life Insurance",
+    claimType: "insurance",
+    amount: 3200,
+    dateOfClaim: new Date("2023-11-15"),
     status: "approved",
-    notes: "Alternative therapy session.",
+    notes: "Life insurance annual payout.",
   },
   {
     id: 12,
-    claimId: "VCL-2023-012",
-    provider: "Reliable Roadside",
-    claimType: "vehicle",
-    amount: 400,
-    dateOfClaim: new Date("2023-12-19"),
+    claimId: "INS-2023-002",
+    provider: "Prudent Insurance Co.",
+    claimType: "insurance",
+    amount: 1800,
+    dateOfClaim: new Date("2023-12-05"),
     status: "pending",
-    notes: "Tire change service.",
+    notes: "Property damage claim.",
   },
   {
     id: 13,
+    claimId: "INS-2024-001",
+    provider: "SecureLife Insurance",
+    claimType: "insurance",
+    amount: 5500,
+    dateOfClaim: new Date("2024-01-18"),
+    status: "approved",
+    notes: "Critical illness coverage.",
+  },
+  {
+    id: 14,
+    claimId: "INS-2024-002",
+    provider: "Shield Insurance Group",
+    claimType: "insurance",
+    amount: 4200,
+    dateOfClaim: new Date("2024-02-22"),
+    status: "rejected",
+    notes: "Policy expired before incident.",
+  },
+  {
+    id: 15,
+    claimId: "INS-2024-003",
+    provider: "Umbrella Coverage Inc.",
+    claimType: "insurance",
+    amount: 2700,
+    dateOfClaim: new Date("2024-03-10"),
+    status: "pending",
+    notes: "Flood damage assessment ongoing.",
+  },
+  {
+    id: 16,
     claimId: "CLM-2024-001",
     provider: "City General Hospital",
     claimType: "health",
@@ -233,7 +266,7 @@ const initialClaims: Claim[] = [
     notes: "Follow-up appointment.",
   },
   {
-    id: 14,
+    id: 17,
     claimId: "VCL-2024-002",
     provider: "Precision Auto Works",
     claimType: "vehicle",
@@ -243,7 +276,7 @@ const initialClaims: Claim[] = [
     notes: "Brake replacement.",
   },
   {
-    id: 15,
+    id: 18,
     claimId: "CLM-2024-003",
     provider: "Wellness Clinic",
     claimType: "health",
@@ -253,7 +286,7 @@ const initialClaims: Claim[] = [
     notes: "Wellness program not covered.",
   },
   {
-    id: 16,
+    id: 19,
     claimId: "VCL-2024-004",
     provider: "Express Auto Care",
     claimType: "vehicle",
@@ -263,7 +296,7 @@ const initialClaims: Claim[] = [
     notes: "Transmission repair.",
   },
   {
-    id: 17,
+    id: 20,
     claimId: "CLM-2024-005",
     provider: "Family Health Center",
     claimType: "health",
@@ -271,36 +304,6 @@ const initialClaims: Claim[] = [
     dateOfClaim: new Date("2024-05-18"),
     status: "pending",
     notes: "Allergy testing.",
-  },
-  {
-    id: 18,
-    claimId: "VCL-2024-006",
-    provider: "Collision Masters",
-    claimType: "vehicle",
-    amount: 5500,
-    dateOfClaim: new Date("2024-06-24"),
-    status: "rejected",
-    notes: "Major accident, driver at fault.",
-  },
-  {
-    id: 19,
-    claimId: "CLM-2024-007",
-    provider: "Global Medical Group",
-    claimType: "health",
-    amount: 2000,
-    dateOfClaim: new Date("2024-07-07"),
-    status: "approved",
-    notes: "Advanced diagnostics.",
-  },
-  {
-    id: 20,
-    claimId: "VCL-2024-008",
-    provider: "Premier Auto Service",
-    claimType: "vehicle",
-    amount: 900,
-    dateOfClaim: new Date("2024-08-30"),
-    status: "pending",
-    notes: "Routine maintenance.",
   },
 ];
 
@@ -310,6 +313,7 @@ const Claims = () => {
   const [sortColumn, setSortColumn] = useState<keyof Claim | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeTab, setActiveTab] = useState<"all" | "health" | "vehicle" | "insurance">("all");
   const claimsPerPage = 10;
   const { toast } = useToast();
 
@@ -332,8 +336,15 @@ const Claims = () => {
     // Add new claim to the state
     const newClaim: Claim = {
       id: claims.length + 1,
-      ...values,
+      claimId: values.claimId,
+      provider: values.provider,
+      claimType: values.claimType,
+      amount: values.amount,
+      dateOfClaim: values.dateOfClaim,
+      status: values.status,
+      notes: values.notes,
     };
+    
     setClaims([...claims, newClaim]);
 
     // Reset the form
@@ -381,8 +392,14 @@ const Claims = () => {
     return new Date(date).toLocaleDateString();
   };
 
-  // Filter claims based on search query
+  // Filter claims based on tab and search query
   const filteredClaims = claims.filter((claim) => {
+    // Filter by tab
+    if (activeTab !== "all" && claim.claimType !== activeTab) {
+      return false;
+    }
+    
+    // Filter by search query
     const searchRegex = new RegExp(searchQuery, "i");
     return (
       searchRegex.test(claim.claimId) ||
@@ -440,7 +457,6 @@ const Claims = () => {
     { label: "Amount", value: "amount" },
     { label: "Date of Claim", value: "dateOfClaim" },
     { label: "Status", value: "status" },
-    { label: "Hospital", value: "provider" },
   ];
 
   return (
@@ -508,6 +524,7 @@ const Claims = () => {
                           <SelectContent>
                             <SelectItem value="health">Health</SelectItem>
                             <SelectItem value="vehicle">Vehicle</SelectItem>
+                            <SelectItem value="insurance">Insurance</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -560,11 +577,10 @@ const Claims = () => {
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="center" side="bottom">
-                            <DatePicker
+                            <Calendar
                               mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={false}
                               initialFocus
                             />
                           </PopoverContent>
@@ -640,6 +656,18 @@ const Claims = () => {
           <CardDescription>
             All claims submitted by customers.
           </CardDescription>
+          <Tabs 
+            defaultValue="all" 
+            className="mt-4"
+            onValueChange={(value) => setActiveTab(value as "all" | "health" | "vehicle" | "insurance")}
+          >
+            <TabsList className="grid grid-cols-4 mb-4">
+              <TabsTrigger value="all">All Claims</TabsTrigger>
+              <TabsTrigger value="health">Health</TabsTrigger>
+              <TabsTrigger value="vehicle">Vehicle</TabsTrigger>
+              <TabsTrigger value="insurance">Insurance</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -671,9 +699,13 @@ const Claims = () => {
                         <Badge variant="outline" className="bg-blue-50 text-blue-800 hover:bg-blue-50">
                           <Ambulance className="mr-1 h-3 w-3" /> Health
                         </Badge>
-                      ) : (
+                      ) : claim.claimType === "vehicle" ? (
                         <Badge variant="outline" className="bg-green-50 text-green-800 hover:bg-green-50">
                           <Car className="mr-1 h-3 w-3" /> Vehicle
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-purple-50 text-purple-800 hover:bg-purple-50">
+                          <Building2 className="mr-1 h-3 w-3" /> Insurance
                         </Badge>
                       )}
                     </TableCell>
@@ -764,26 +796,42 @@ const Claims = () => {
             <TableCell colSpan={7}>
               <Pagination>
                 <PaginationContent>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  />
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage > 1) handlePageChange(currentPage - 1);
+                      }}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                  
                   {pageNumbers.map((page) => (
-                    <PaginationItem key={page} active={currentPage === page}>
+                    <PaginationItem key={page} className={currentPage === page ? "font-bold" : ""}>
                       <PaginationLink
                         href="#"
-                        onClick={() => handlePageChange(page)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(page);
+                        }}
+                        isActive={currentPage === page}
                       >
                         {page}
                       </PaginationLink>
                     </PaginationItem>
                   ))}
-                  <PaginationNext
-                    href="#"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === pageCount}
-                  />
+                  
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage < pageCount) handlePageChange(currentPage + 1);
+                      }}
+                      className={currentPage === pageCount ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
                 </PaginationContent>
               </Pagination>
             </TableCell>
