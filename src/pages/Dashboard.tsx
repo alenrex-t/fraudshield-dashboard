@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, LineChart, ResponsiveContainer, XAxis, YAxis, Bar, CartesianGrid, Tooltip, Legend, Line, PieChart, Pie, Cell } from "recharts";
@@ -6,6 +5,7 @@ import { AlertTriangle, CheckCircle, FileText, Building2, BarChart3, Activity, A
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IndianRupee } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 // Mock data
 const fraudStats = {
