@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,7 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Search, FileText, Building2, Calendar, AlertTriangle, CheckCircle, File, ArrowUpDown, Eye, Plus, FilePlus } from "lucide-react";
+import { 
+  Search, FileText, Building2, Calendar, AlertTriangle, CheckCircle, 
+  File, ArrowUpDown, Eye, Plus, FilePlus, Car, CarFront 
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -23,7 +27,8 @@ const claimsData = [
     date: "2023-06-15",
     status: "approved",
     fraudScore: 12,
-    flagged: false
+    flagged: false,
+    type: "hospital"
   },
   {
     id: "CLM-2023457",
@@ -34,7 +39,8 @@ const claimsData = [
     date: "2023-06-14",
     status: "reviewing",
     fraudScore: 54,
-    flagged: true
+    flagged: true,
+    type: "hospital"
   },
   {
     id: "CLM-2023458",
@@ -45,7 +51,8 @@ const claimsData = [
     date: "2023-06-14",
     status: "approved",
     fraudScore: 18,
-    flagged: false
+    flagged: false,
+    type: "hospital"
   },
   {
     id: "CLM-2023459",
@@ -56,7 +63,8 @@ const claimsData = [
     date: "2023-06-13",
     status: "rejected",
     fraudScore: 87,
-    flagged: true
+    flagged: true,
+    type: "hospital"
   },
   {
     id: "CLM-2023460",
@@ -67,7 +75,8 @@ const claimsData = [
     date: "2023-06-13",
     status: "approved",
     fraudScore: 8,
-    flagged: false
+    flagged: false,
+    type: "hospital"
   },
   {
     id: "CLM-2023461",
@@ -78,7 +87,8 @@ const claimsData = [
     date: "2023-06-12",
     status: "approved",
     fraudScore: 15,
-    flagged: false
+    flagged: false,
+    type: "hospital"
   },
   {
     id: "CLM-2023462",
@@ -89,7 +99,8 @@ const claimsData = [
     date: "2023-06-12",
     status: "reviewing",
     fraudScore: 62,
-    flagged: true
+    flagged: true,
+    type: "hospital"
   },
   {
     id: "CLM-2023463",
@@ -100,7 +111,8 @@ const claimsData = [
     date: "2023-06-11",
     status: "rejected",
     fraudScore: 76,
-    flagged: true
+    flagged: true,
+    type: "hospital"
   },
   {
     id: "CLM-2023464",
@@ -111,7 +123,8 @@ const claimsData = [
     date: "2023-06-11",
     status: "approved",
     fraudScore: 21,
-    flagged: false
+    flagged: false,
+    type: "hospital"
   },
   {
     id: "CLM-2023465",
@@ -122,7 +135,69 @@ const claimsData = [
     date: "2023-06-10",
     status: "reviewing",
     fraudScore: 35,
-    flagged: true
+    flagged: true,
+    type: "hospital"
+  },
+  // Vehicle insurance claims
+  {
+    id: "CLM-2023466",
+    vehicleId: "VH-10045",
+    provider: "AllState Insurance",
+    service: "Accident Damage",
+    amount: 2850.75,
+    date: "2023-06-15",
+    status: "approved",
+    fraudScore: 10,
+    flagged: false,
+    type: "vehicle"
+  },
+  {
+    id: "CLM-2023467",
+    vehicleId: "VH-23781",
+    provider: "Progressive",
+    service: "Windshield Replacement",
+    amount: 1240.50,
+    date: "2023-06-14",
+    status: "reviewing",
+    fraudScore: 22,
+    flagged: false,
+    type: "vehicle"
+  },
+  {
+    id: "CLM-2023468",
+    vehicleId: "VH-87452",
+    provider: "GEICO",
+    service: "Total Loss",
+    amount: 12875.25,
+    date: "2023-06-14",
+    status: "reviewing",
+    fraudScore: 68,
+    flagged: true,
+    type: "vehicle"
+  },
+  {
+    id: "CLM-2023469",
+    vehicleId: "VH-43921",
+    provider: "State Farm",
+    service: "Collision Repair",
+    amount: 3950.00,
+    date: "2023-06-13",
+    status: "rejected",
+    fraudScore: 82,
+    flagged: true,
+    type: "vehicle"
+  },
+  {
+    id: "CLM-2023470",
+    vehicleId: "VH-56302",
+    provider: "Liberty Mutual",
+    service: "Theft Recovery",
+    amount: 8250.75,
+    date: "2023-06-12",
+    status: "approved",
+    fraudScore: 12,
+    flagged: false,
+    type: "vehicle"
   }
 ];
 
@@ -141,6 +216,7 @@ const claimDetail = {
   status: "reviewing",
   fraudScore: 54,
   flagged: true,
+  type: "hospital",
   flags: [
     "Unusual billing pattern detected",
     "Provider has had multiple similar claims rejected",
@@ -154,20 +230,63 @@ const claimDetail = {
   ]
 };
 
+// Vehicle claim detail
+const vehicleClaimDetail = {
+  id: "CLM-2023468",
+  vehicleId: "VH-87452",
+  vehicleMake: "Honda",
+  vehicleModel: "Accord",
+  vehicleYear: 2020,
+  provider: "GEICO",
+  service: "Total Loss",
+  damageDetails: "Vehicle deemed total loss after severe front-end collision",
+  policyNumber: "POL-74529683",
+  amount: 12875.25,
+  date: "2023-06-14",
+  status: "reviewing",
+  fraudScore: 68,
+  flagged: true,
+  type: "vehicle",
+  flags: [
+    "Recent policy changes before incident",
+    "Multiple claims within short timeframe",
+    "Vehicle value assessment inconsistencies"
+  ],
+  timeline: [
+    { date: "2023-06-14 08:15:22", event: "Claim submitted", user: "System" },
+    { date: "2023-06-14 08:22:35", event: "AI analysis flagged potential issues", user: "FraudShield AI" },
+    { date: "2023-06-14 10:45:12", event: "Assigned for manual review", user: "System" },
+    { date: "2023-06-14 13:30:50", event: "Vehicle inspection requested", user: "Alex Thompson" }
+  ]
+};
+
 // Add new claim form schema
 const newClaimSchema = z.object({
   patientId: z.string().min(2, {
     message: "Patient ID must be at least 2 characters.",
-  }),
+  }).optional(),
   patientName: z.string().min(2, {
     message: "Patient name must be at least 2 characters.",
-  }),
+  }).optional(),
+  vehicleId: z.string().min(2, {
+    message: "Vehicle ID must be at least 2 characters.",
+  }).optional(),
+  vehicleMake: z.string().min(2, {
+    message: "Vehicle make must be at least 2 characters.",
+  }).optional(),
+  vehicleModel: z.string().min(2, {
+    message: "Vehicle model must be at least 2 characters.",
+  }).optional(),
   hospital: z.string().min(2, {
     message: "Hospital is required.",
-  }),
+  }).optional(),
+  provider: z.string().min(2, {
+    message: "Provider is required.",
+  }).optional(),
   service: z.string().min(2, {
     message: "Service is required.",
   }),
+  type: z.enum(["hospital", "vehicle"]),
   amount: z.string().refine(
     (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, 
     { message: "Amount must be a positive number." }
@@ -177,6 +296,7 @@ const newClaimSchema = z.object({
 const Claims = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [claimType, setClaimType] = useState("all");
   const [sortConfig, setSortConfig] = useState<{
     key: keyof typeof claimsData[0] | null;
     direction: 'ascending' | 'descending';
@@ -184,7 +304,7 @@ const Claims = () => {
     key: "date",
     direction: "descending"
   });
-  const [viewingClaim, setViewingClaim] = useState<null | typeof claimDetail>(null);
+  const [viewingClaim, setViewingClaim] = useState<any | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   
   const form = useForm<z.infer<typeof newClaimSchema>>({
@@ -192,11 +312,19 @@ const Claims = () => {
     defaultValues: {
       patientId: "",
       patientName: "",
+      vehicleId: "",
+      vehicleMake: "",
+      vehicleModel: "",
       hospital: "",
+      provider: "",
       service: "",
+      type: "hospital",
       amount: "",
     },
   });
+
+  // Watch the claim type to conditionally show form fields
+  const watchClaimType = form.watch("type");
   
   // Sorting function
   const sortedClaims = [...claimsData].sort((a, b) => {
@@ -211,14 +339,23 @@ const Claims = () => {
     return 0;
   });
   
-  // Filtering by tab and search term
+  // Filtering by tab, claim type, and search term
   const filteredClaims = sortedClaims.filter(claim => {
+    // Filter by claim type first
+    if (claimType !== "all" && claim.type !== claimType) {
+      return false;
+    }
+    
+    // Filter by search term - includes checking for vehicle fields
     const matchesSearch = 
       claim.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      claim.hospital.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (claim.type === "hospital" && claim.hospital?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (claim.type === "vehicle" && claim.provider?.toLowerCase().includes(searchTerm.toLowerCase())) ||
       claim.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      claim.patientId.toLowerCase().includes(searchTerm.toLowerCase());
+      (claim.type === "hospital" && claim.patientId?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (claim.type === "vehicle" && claim.vehicleId?.toLowerCase().includes(searchTerm.toLowerCase()));
       
+    // Filter by status tab
     if (activeTab === "all") return matchesSearch;
     if (activeTab === "approved") return claim.status === "approved" && matchesSearch;
     if (activeTab === "reviewing") return claim.status === "reviewing" && matchesSearch;
@@ -263,8 +400,12 @@ const Claims = () => {
   };
   
   // Handle claim click to show detail
-  const handleViewClaim = (claimId: string) => {
-    setViewingClaim(claimDetail);
+  const handleViewClaim = (claimId: string, type: string) => {
+    if (type === "vehicle") {
+      setViewingClaim(vehicleClaimDetail);
+    } else {
+      setViewingClaim(claimDetail);
+    }
   };
   
   // Handle form submission for new claim
@@ -275,14 +416,20 @@ const Claims = () => {
     // Create a new claim object with generated ID and default values
     const newClaim = {
       id: `CLM-${Math.floor(Math.random() * 10000)}`,
-      patientId: values.patientId,
-      hospital: values.hospital,
+      ...(values.type === "hospital" ? {
+        patientId: values.patientId,
+        hospital: values.hospital,
+      } : {
+        vehicleId: values.vehicleId,
+        provider: values.provider,
+      }),
       service: values.service,
       amount: parseFloat(values.amount),
       date: new Date().toISOString().split('T')[0],
       status: "reviewing",
       fraudScore: Math.floor(Math.random() * 30) + 10, // Random score between 10-40
-      flagged: false
+      flagged: false,
+      type: values.type
     };
     
     // In a real application, you would add this to your database
@@ -314,14 +461,39 @@ const Claims = () => {
               <FileText className="mr-2 h-5 w-5" />
               Claims Management
             </CardTitle>
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search claims..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <div className="flex flex-wrap gap-2">
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search claims..."
+                  className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="flex">
+                <Button 
+                  variant={claimType === "all" ? "default" : "outline"} 
+                  onClick={() => setClaimType("all")}
+                  className="rounded-r-none"
+                >
+                  All
+                </Button>
+                <Button 
+                  variant={claimType === "hospital" ? "default" : "outline"} 
+                  onClick={() => setClaimType("hospital")}
+                  className="rounded-none border-l-0"
+                >
+                  <Building2 className="mr-1 h-4 w-4" /> Hospital
+                </Button>
+                <Button 
+                  variant={claimType === "vehicle" ? "default" : "outline"} 
+                  onClick={() => setClaimType("vehicle")}
+                  className="rounded-l-none border-l-0"
+                >
+                  <Car className="mr-1 h-4 w-4" /> Vehicle
+                </Button>
+              </div>
             </div>
           </div>
           <CardDescription>
@@ -352,14 +524,16 @@ const Claims = () => {
                           <ArrowUpDown className="ml-2 h-4 w-4" />
                         </Button>
                       </th>
-                      <th className="font-medium text-left py-3 px-4">Patient ID</th>
+                      <th className="font-medium text-left py-3 px-4">
+                        ID
+                      </th>
                       <th className="font-medium text-left py-3 px-4">
                         <Button 
                           variant="ghost" 
                           className="font-medium p-0 hover:bg-transparent"
-                          onClick={() => requestSort('hospital')}
+                          onClick={() => requestSort(claimType === "vehicle" ? 'provider' : 'hospital')}
                         >
-                          Hospital
+                          {claimType === "vehicle" ? "Provider" : "Hospital"}
                           <ArrowUpDown className="ml-2 h-4 w-4" />
                         </Button>
                       </th>
@@ -395,6 +569,7 @@ const Claims = () => {
                           <ArrowUpDown className="ml-2 h-4 w-4" />
                         </Button>
                       </th>
+                      <th className="font-medium text-left py-3 px-4">Type</th>
                       <th className="font-medium text-left py-3 px-4">Actions</th>
                     </tr>
                   </thead>
@@ -409,11 +584,17 @@ const Claims = () => {
                             {claim.id}
                           </div>
                         </td>
-                        <td className="py-3 px-4">{claim.patientId}</td>
+                        <td className="py-3 px-4">
+                          {claim.type === "hospital" ? claim.patientId : claim.vehicleId}
+                        </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center">
-                            <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
-                            {claim.hospital}
+                            {claim.type === "hospital" ? (
+                              <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <CarFront className="mr-2 h-4 w-4 text-muted-foreground" />
+                            )}
+                            {claim.type === "hospital" ? claim.hospital : claim.provider}
                           </div>
                         </td>
                         <td className="py-3 px-4">{claim.service}</td>
@@ -427,10 +608,19 @@ const Claims = () => {
                         <td className="py-3 px-4">{getStatusBadge(claim.status)}</td>
                         <td className="py-3 px-4">{getFraudScoreBadge(claim.fraudScore)}</td>
                         <td className="py-3 px-4">
+                          <Badge className={
+                            claim.type === "hospital" 
+                              ? "bg-blue-100 text-blue-800 hover:bg-blue-100" 
+                              : "bg-purple-100 text-purple-800 hover:bg-purple-100"
+                          }>
+                            {claim.type === "hospital" ? "Hospital" : "Vehicle"}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleViewClaim(claim.id)}
+                            onClick={() => handleViewClaim(claim.id, claim.type)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -450,7 +640,11 @@ const Claims = () => {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle className="flex items-center">
-              <File className="mr-2 h-5 w-5" />
+              {viewingClaim?.type === "vehicle" ? (
+                <Car className="mr-2 h-5 w-5" />
+              ) : (
+                <File className="mr-2 h-5 w-5" />
+              )}
               Claim Details
             </DialogTitle>
             <DialogDescription>
@@ -485,47 +679,96 @@ const Claims = () => {
                       <span className="text-sm">Fraud Score:</span>
                       <span>{getFraudScoreBadge(viewingClaim.fraudScore)}</span>
                     </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Type:</span>
+                      <Badge className={
+                        viewingClaim.type === "hospital" 
+                          ? "bg-blue-100 text-blue-800 hover:bg-blue-100" 
+                          : "bg-purple-100 text-purple-800 hover:bg-purple-100"
+                      }>
+                        {viewingClaim.type === "hospital" ? "Hospital" : "Vehicle"}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
                 
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Patient & Provider</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                    {viewingClaim.type === "hospital" ? "Patient & Provider" : "Vehicle & Provider"}
+                  </h3>
                   <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Patient ID:</span>
-                      <span className="text-sm font-medium">{viewingClaim.patientId}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Patient Name:</span>
-                      <span className="text-sm font-medium">{viewingClaim.patientName}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Patient Age:</span>
-                      <span className="text-sm font-medium">{viewingClaim.patientAge}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Hospital:</span>
-                      <span className="text-sm font-medium">{viewingClaim.hospital}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Provider:</span>
-                      <span className="text-sm font-medium">{viewingClaim.provider}</span>
-                    </div>
+                    {viewingClaim.type === "hospital" ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Patient ID:</span>
+                          <span className="text-sm font-medium">{viewingClaim.patientId}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Patient Name:</span>
+                          <span className="text-sm font-medium">{viewingClaim.patientName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Patient Age:</span>
+                          <span className="text-sm font-medium">{viewingClaim.patientAge}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Hospital:</span>
+                          <span className="text-sm font-medium">{viewingClaim.hospital}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Provider:</span>
+                          <span className="text-sm font-medium">{viewingClaim.provider}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Vehicle ID:</span>
+                          <span className="text-sm font-medium">{viewingClaim.vehicleId}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Make:</span>
+                          <span className="text-sm font-medium">{viewingClaim.vehicleMake}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Model:</span>
+                          <span className="text-sm font-medium">{viewingClaim.vehicleModel}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Year:</span>
+                          <span className="text-sm font-medium">{viewingClaim.vehicleYear}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Insurance Provider:</span>
+                          <span className="text-sm font-medium">{viewingClaim.provider}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Policy Number:</span>
+                          <span className="text-sm font-medium">{viewingClaim.policyNumber}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
               
-              {/* Medical Information */}
+              {/* Service/Damage Information */}
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">Medical Information</h3>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                  {viewingClaim.type === "hospital" ? "Medical Information" : "Damage Information"}
+                </h3>
                 <div className="p-3 bg-muted rounded-md">
                   <div className="flex justify-between mb-2">
                     <span className="text-sm">Service Category:</span>
                     <span className="text-sm font-medium">{viewingClaim.service}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">Procedure:</span>
-                    <span className="text-sm font-medium">{viewingClaim.procedure}</span>
+                    <span className="text-sm">
+                      {viewingClaim.type === "hospital" ? "Procedure:" : "Details:"}
+                    </span>
+                    <span className="text-sm font-medium">
+                      {viewingClaim.type === "hospital" ? viewingClaim.procedure : viewingClaim.damageDetails}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -538,7 +781,7 @@ const Claims = () => {
                     Fraud Detection Flags
                   </h3>
                   <div className="p-3 bg-red-50 text-red-800 rounded-md space-y-2">
-                    {viewingClaim.flags.map((flag, index) => (
+                    {viewingClaim.flags.map((flag: string, index: number) => (
                       <div key={index} className="flex items-start">
                         <AlertTriangle className="h-4 w-4 mr-2 mt-0.5" />
                         <span className="text-sm">{flag}</span>
@@ -552,7 +795,7 @@ const Claims = () => {
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-2">Activity Timeline</h3>
                 <div className="space-y-3">
-                  {viewingClaim.timeline.map((item, index) => (
+                  {viewingClaim.timeline.map((item: {date: string, event: string, user: string}, index: number) => (
                     <div key={index} className="flex">
                       <div className="mr-3 relative">
                         <div className="h-3 w-3 rounded-full bg-primary mt-1.5"></div>
@@ -600,48 +843,146 @@ const Claims = () => {
           
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleNewClaim)} className="space-y-4">
+              {/* Claim Type Selection */}
               <FormField
                 control={form.control}
-                name="patientId"
+                name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Patient ID</FormLabel>
-                    <FormControl>
-                      <Input placeholder="PT-12345" {...field} />
-                    </FormControl>
-                    <FormMessage />
+                    <FormLabel>Claim Type</FormLabel>
+                    <div className="flex">
+                      <Button
+                        type="button"
+                        variant={field.value === "hospital" ? "default" : "outline"}
+                        className="flex-1 rounded-r-none"
+                        onClick={() => form.setValue("type", "hospital")}
+                      >
+                        <Building2 className="mr-2 h-4 w-4" />
+                        Hospital
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={field.value === "vehicle" ? "default" : "outline"}
+                        className="flex-1 rounded-l-none"
+                        onClick={() => form.setValue("type", "vehicle")}
+                      >
+                        <Car className="mr-2 h-4 w-4" />
+                        Vehicle
+                      </Button>
+                    </div>
                   </FormItem>
                 )}
               />
+
+              {/* Hospital Claim Fields */}
+              {watchClaimType === "hospital" && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="patientId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Patient ID</FormLabel>
+                        <FormControl>
+                          <Input placeholder="PT-12345" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="patientName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Patient Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="hospital"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Hospital</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Hospital name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              {/* Vehicle Claim Fields */}
+              {watchClaimType === "vehicle" && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="vehicleId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Vehicle ID</FormLabel>
+                        <FormControl>
+                          <Input placeholder="VH-12345" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="vehicleMake"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Vehicle Make</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Toyota" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="vehicleModel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Vehicle Model</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Camry" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="provider"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Insurance Provider</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., GEICO" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
               
-              <FormField
-                control={form.control}
-                name="patientName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Patient Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="hospital"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Hospital</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Hospital name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
+              {/* Common Fields */}
               <FormField
                 control={form.control}
                 name="service"
@@ -649,7 +990,7 @@ const Claims = () => {
                   <FormItem>
                     <FormLabel>Service Type</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Cardiology" {...field} />
+                      <Input placeholder={watchClaimType === "hospital" ? "e.g., Cardiology" : "e.g., Collision Repair"} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
