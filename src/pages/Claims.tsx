@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -305,26 +304,37 @@ const Claims = () => {
     direction: "descending"
   });
   const [viewingClaim, setViewingClaim] = useState<any | null>(null);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAddHospitalDialogOpen, setIsAddHospitalDialogOpen] = useState(false);
+  const [isAddVehicleDialogOpen, setIsAddVehicleDialogOpen] = useState(false);
   
-  const form = useForm<z.infer<typeof newClaimSchema>>({
+  // Replace the single form with two separate forms
+  const hospitalForm = useForm<z.infer<typeof newClaimSchema>>({
     resolver: zodResolver(newClaimSchema),
     defaultValues: {
       patientId: "",
       patientName: "",
-      vehicleId: "",
-      vehicleMake: "",
-      vehicleModel: "",
       hospital: "",
-      provider: "",
       service: "",
       type: "hospital",
       amount: "",
     },
   });
 
+  const vehicleForm = useForm<z.infer<typeof newClaimSchema>>({
+    resolver: zodResolver(newClaimSchema),
+    defaultValues: {
+      vehicleId: "",
+      vehicleMake: "",
+      vehicleModel: "",
+      provider: "",
+      service: "",
+      type: "vehicle",
+      amount: "",
+    },
+  });
+
   // Watch the claim type to conditionally show form fields
-  const watchClaimType = form.watch("type");
+  const watchClaimType = hospitalForm.watch("type");
   
   // Sorting function
   const sortedClaims = [...claimsData].sort((a, b) => {
@@ -439,18 +449,26 @@ const Claims = () => {
       description: `Claim ${newClaim.id} has been successfully submitted for review.`,
     });
     
-    setIsAddDialogOpen(false);
-    form.reset();
+    setIsAddHospitalDialogOpen(false);
+    setIsAddVehicleDialogOpen(false);
+    hospitalForm.reset();
+    vehicleForm.reset();
   };
   
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Claims</h1>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <FilePlus className="mr-2 h-4 w-4" />
-          Add New Claim
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setIsAddHospitalDialogOpen(true)}>
+            <Building2 className="mr-2 h-4 w-4" />
+            New Hospital Claim
+          </Button>
+          <Button onClick={() => setIsAddVehicleDialogOpen(true)}>
+            <Car className="mr-2 h-4 w-4" />
+            New Vehicle Claim
+          </Button>
+        </div>
       </div>
       
       {/* Claims Table */}
@@ -767,262 +785,4 @@ const Claims = () => {
                       {viewingClaim.type === "hospital" ? "Procedure:" : "Details:"}
                     </span>
                     <span className="text-sm font-medium">
-                      {viewingClaim.type === "hospital" ? viewingClaim.procedure : viewingClaim.damageDetails}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* AI Flags */}
-              {viewingClaim.flagged && (
-                <div>
-                  <h3 className="text-sm font-medium text-red-500 flex items-center mb-2">
-                    <AlertTriangle className="h-4 w-4 mr-1" />
-                    Fraud Detection Flags
-                  </h3>
-                  <div className="p-3 bg-red-50 text-red-800 rounded-md space-y-2">
-                    {viewingClaim.flags.map((flag: string, index: number) => (
-                      <div key={index} className="flex items-start">
-                        <AlertTriangle className="h-4 w-4 mr-2 mt-0.5" />
-                        <span className="text-sm">{flag}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Timeline */}
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">Activity Timeline</h3>
-                <div className="space-y-3">
-                  {viewingClaim.timeline.map((item: {date: string, event: string, user: string}, index: number) => (
-                    <div key={index} className="flex">
-                      <div className="mr-3 relative">
-                        <div className="h-3 w-3 rounded-full bg-primary mt-1.5"></div>
-                        {index < viewingClaim.timeline.length - 1 && (
-                          <div className="absolute left-1.5 top-4 h-full w-px bg-muted-foreground"></div>
-                        )}
-                      </div>
-                      <div className="pb-5">
-                        <div className="text-xs text-muted-foreground">{item.date}</div>
-                        <div className="text-sm font-medium">{item.event}</div>
-                        <div className="text-xs text-muted-foreground">By {item.user}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-2">
-                <Button variant="outline">Request More Info</Button>
-                {viewingClaim.status === "reviewing" && (
-                  <>
-                    <Button variant="destructive">Reject Claim</Button>
-                    <Button variant="default">Approve Claim</Button>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-      
-      {/* Add New Claim Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center">
-              <FilePlus className="mr-2 h-5 w-5" />
-              Submit New Claim
-            </DialogTitle>
-            <DialogDescription>
-              Enter the details of the new insurance claim.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleNewClaim)} className="space-y-4">
-              {/* Claim Type Selection */}
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Claim Type</FormLabel>
-                    <div className="flex">
-                      <Button
-                        type="button"
-                        variant={field.value === "hospital" ? "default" : "outline"}
-                        className="flex-1 rounded-r-none"
-                        onClick={() => form.setValue("type", "hospital")}
-                      >
-                        <Building2 className="mr-2 h-4 w-4" />
-                        Hospital
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={field.value === "vehicle" ? "default" : "outline"}
-                        className="flex-1 rounded-l-none"
-                        onClick={() => form.setValue("type", "vehicle")}
-                      >
-                        <Car className="mr-2 h-4 w-4" />
-                        Vehicle
-                      </Button>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              {/* Hospital Claim Fields */}
-              {watchClaimType === "hospital" && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="patientId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Patient ID</FormLabel>
-                        <FormControl>
-                          <Input placeholder="PT-12345" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="patientName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Patient Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="John Doe" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="hospital"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Hospital</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Hospital name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-
-              {/* Vehicle Claim Fields */}
-              {watchClaimType === "vehicle" && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="vehicleId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Vehicle ID</FormLabel>
-                        <FormControl>
-                          <Input placeholder="VH-12345" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="vehicleMake"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Vehicle Make</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Toyota" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="vehicleModel"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Vehicle Model</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Camry" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="provider"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Insurance Provider</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., GEICO" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-              
-              {/* Common Fields */}
-              <FormField
-                control={form.control}
-                name="service"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Service Type</FormLabel>
-                    <FormControl>
-                      <Input placeholder={watchClaimType === "hospital" ? "e.g., Cardiology" : "e.g., Collision Repair"} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Amount (₹)</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.01" min="0" placeholder="0.00" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">Submit Claim</Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
-
-export default Claims;
+                      {viewingClaim.type === "hospital" ? viewingClaim.procedure
