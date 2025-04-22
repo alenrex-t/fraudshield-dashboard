@@ -1,6 +1,8 @@
 
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Shield, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,18 +13,57 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      await login(email, password);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        toast.success("Login successful!");
+        navigate("/dashboard");
+      }
     } catch (error) {
-      console.error("Login error:", error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSignUp = async () => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        toast.success("Account created successfully! Please check your email to verify.");
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     }
   };
 
@@ -71,17 +112,26 @@ const Login = () => {
                   required
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  (Use any password with at least 6 characters)
+                  Enter your credentials or create a new account
                 </p>
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex flex-col space-y-2">
               <Button 
                 type="submit" 
                 className="w-full" 
                 disabled={isLoading}
               >
                 {isLoading ? "Signing in..." : "Sign in"}
+              </Button>
+              <Button 
+                type="button"
+                variant="outline" 
+                className="w-full mt-2" 
+                onClick={handleSignUp}
+                disabled={isLoading}
+              >
+                Create Account
               </Button>
             </CardFooter>
           </form>
