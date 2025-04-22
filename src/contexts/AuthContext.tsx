@@ -1,78 +1,74 @@
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { Session, User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  loading: boolean;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   
-  // Mock user for demo purposes
-  const mockUser = {
-    id: "usr_123",
-    name: "Admin User",
-    email: "admin@smarti.com",
-    role: "admin"
-  };
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.email);
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (event === 'SIGNED_OUT') {
+          toast.info("You have been signed out");
+        } else if (event === 'SIGNED_IN') {
+          toast.success("You have been signed in successfully");
+        }
+      }
+    );
 
-  const login = async (email: string, password: string) => {
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const logout = async () => {
     try {
-      // This is a mock login function. In a real app, you would call your auth API
-      if (email.trim() === "" || password.trim() === "") {
-        throw new Error("Please enter both email and password");
-      }
-      
-      // Simple validation - in real app, would check against database
-      if (password.length < 6) {
-        throw new Error("Password must be at least 6 characters");
-      }
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Set the mock user
-      setUser(mockUser);
-      
-      // Show success notification
-      toast.success("Login successful!");
-      
-      // Navigate to dashboard after successful login
-      navigate("/dashboard");
+      await supabase.auth.signOut();
+      navigate("/login");
     } catch (error) {
-      // Show error notification
+      console.error("Logout error:", error);
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
-        toast.error("Failed to login");
+        toast.error("Failed to logout");
       }
-      throw error;
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    toast.success("Logged out successfully");
-    navigate("/login");
-  };
-
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      isAuthenticated: !!user,
+      loading,
+      logout 
+    }}>
       {children}
     </AuthContext.Provider>
   );

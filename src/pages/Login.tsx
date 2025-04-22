@@ -3,7 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Shield, Info } from "lucide-react";
+import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +34,7 @@ const Login = () => {
         navigate("/dashboard");
       }
     } catch (error) {
+      console.error("Login error:", error);
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
@@ -45,6 +46,18 @@ const Login = () => {
   };
 
   const handleSignUp = async () => {
+    if (!email || !password) {
+      toast.error("Please enter both email and password");
+      return;
+    }
+    
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    
+    setIsLoading(true);
+    
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -59,11 +72,14 @@ const Login = () => {
         toast.success("Account created successfully! Please check your email to verify.");
       }
     } catch (error) {
+      console.error("Signup error:", error);
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
         toast.error("An unexpected error occurred");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -95,7 +111,7 @@ const Login = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@smarti.com"
+                  placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
