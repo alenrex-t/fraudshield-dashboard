@@ -429,8 +429,7 @@ const Claims = () => {
     }
   };
   
-  // Handle form submission for new claim
-  const handleNewClaim = (values: z.infer<typeof newClaimSchema>) => {
+  const handleSubmit = (values: z.infer<typeof newClaimSchema>) => {
     // In a real app, this would connect to your backend API
     console.log("New claim submitted:", values);
     
@@ -466,7 +465,7 @@ const Claims = () => {
     hospitalForm.reset();
     vehicleForm.reset();
   };
-  
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -789,4 +788,5 @@ const Claims = () => {
                 </h3>
                 <div className="p-3 bg-muted rounded-md">
                   <div className="flex justify-between mb-2">
-                    <span className="
+                    <span className="text-sm">Service Category:</span>
+                    <span className="text-
