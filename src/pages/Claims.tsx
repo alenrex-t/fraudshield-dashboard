@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -789,4 +790,266 @@ const Claims = () => {
                 <div className="p-3 bg-muted rounded-md">
                   <div className="flex justify-between mb-2">
                     <span className="text-sm">Service Category:</span>
-                    <span className="text-
+                    <span className="text-sm font-medium">{viewingClaim.service}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">
+                      {viewingClaim.type === "hospital" ? "Procedure:" : "Details:"}
+                    </span>
+                    <span className="text-sm font-medium">
+                      {viewingClaim.type === "hospital" ? viewingClaim.procedure : viewingClaim.damageDetails}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Fraud Flags */}
+              {viewingClaim.flagged && (
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                    Fraud Analysis
+                  </h3>
+                  <div className="p-3 bg-red-50 rounded-md border border-red-200">
+                    <div className="flex items-start mb-2">
+                      <AlertTriangle className="mr-2 h-4 w-4 text-red-500 mt-0.5" />
+                      <span className="text-sm font-medium text-red-800">This claim has been flagged for potential fraud</span>
+                    </div>
+                    <ul className="space-y-1 ml-6 list-disc text-sm text-red-700">
+                      {viewingClaim.flags.map((flag, index) => (
+                        <li key={index}>{flag}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+              
+              {/* Timeline */}
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                  Claim Timeline
+                </h3>
+                <div className="space-y-2">
+                  {viewingClaim.timeline.map((event, index) => (
+                    <div key={index} className="flex p-2 border-l-2 border-primary">
+                      <div className="grow">
+                        <p className="text-sm font-medium">{event.event}</p>
+                        <p className="text-xs text-muted-foreground">By {event.user}</p>
+                      </div>
+                      <div className="text-xs text-muted-foreground">{event.date}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Hospital Claim Dialog */}
+      <Dialog open={isAddHospitalDialogOpen} onOpenChange={setIsAddHospitalDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Building2 className="mr-2 h-5 w-5" />
+              New Hospital Claim
+            </DialogTitle>
+            <DialogDescription>
+              Submit a new hospital insurance claim
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...hospitalForm}>
+            <form onSubmit={hospitalForm.handleSubmit(handleSubmit)} className="space-y-4">
+              <FormField
+                control={hospitalForm.control}
+                name="patientId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Patient ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="PT-12345" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={hospitalForm.control}
+                name="patientName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Patient Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={hospitalForm.control}
+                name="hospital"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hospital</FormLabel>
+                    <FormControl>
+                      <Input placeholder="City General Hospital" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={hospitalForm.control}
+                name="service"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Service</FormLabel>
+                    <FormControl>
+                      <Input placeholder="General Surgery" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={hospitalForm.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Amount ($)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="1000.00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <input type="hidden" {...hospitalForm.register("type", { value: "hospital" })} />
+              
+              <DialogFooter>
+                <Button type="submit">Submit Claim</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Vehicle Claim Dialog */}
+      <Dialog open={isAddVehicleDialogOpen} onOpenChange={setIsAddVehicleDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Car className="mr-2 h-5 w-5" />
+              New Vehicle Claim
+            </DialogTitle>
+            <DialogDescription>
+              Submit a new vehicle insurance claim
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...vehicleForm}>
+            <form onSubmit={vehicleForm.handleSubmit(handleSubmit)} className="space-y-4">
+              <FormField
+                control={vehicleForm.control}
+                name="vehicleId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Vehicle ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="VH-12345" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={vehicleForm.control}
+                name="vehicleMake"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Vehicle Make</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Toyota" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={vehicleForm.control}
+                name="vehicleModel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Vehicle Model</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Camry" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={vehicleForm.control}
+                name="provider"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Insurance Provider</FormLabel>
+                    <FormControl>
+                      <Input placeholder="State Farm" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={vehicleForm.control}
+                name="service"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Service</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Collision Repair" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={vehicleForm.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Amount ($)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="2500.00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <input type="hidden" {...vehicleForm.register("type", { value: "vehicle" })} />
+              
+              <DialogFooter>
+                <Button type="submit">Submit Claim</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default Claims;
